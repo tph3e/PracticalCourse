@@ -1,0 +1,3 @@
+# Core data / process mining
+pandas
+pm4py

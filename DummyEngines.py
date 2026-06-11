@@ -50,6 +50,7 @@ class BranchingEngine:
         else:
             return possibleActivities
 
+#for task 1.6 - 1.8
 class ResourceEngine:
     def allocateResource(self, data):
         return True
