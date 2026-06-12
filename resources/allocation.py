@@ -1,3 +1,4 @@
+# 1.8 Resource allocation
 
 from __future__ import annotations
 
@@ -16,4 +17,5 @@ class RandomAllocation(AllocationStrategy):
     def pick(self, candidates: set[str]) -> str | None:
         if not candidates:
             return None
+        # sort first so the seeded RNG is deterministic regardless of set order
         return self._rng.choice(sorted(candidates))

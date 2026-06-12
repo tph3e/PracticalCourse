@@ -24,7 +24,8 @@ For each of the following tasks an own file is created.
 ├── SimulationEngineCore.py   # core (Task 1.1)
 ├── DummyEngines.py           # placeholder engines, replaced per task
 ├── Helper.py                 # Event / Case / EventType
-├── resources/                # tasks 1.6–1.8 
+├── resources/                # tasks 1.1–1.8 
+├── scripts/                  # offline/helper scripts
 ├── notebooks/                # offline fitting
 ├── data/                     # BPIC-17 log (not in repo)
 ├── results/                  # generated tables/figures for the report
@@ -36,4 +37,11 @@ Details: TBD
 
 This project is not finished yet and subject to ongoing changes.
 
+### Setup
 The _requirements.txt_ contains all dependencies necessary to execute the project.
+
+**bash:** 
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt

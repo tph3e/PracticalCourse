@@ -1,0 +1,4 @@
+task,metric,basic,advanced
+1.6 availability,event coverage of real log,72.0%,96.4%
+1.7 permissions,activities covered (no deadlock),26/26,26/26
+1.7 permissions,"extra role-based (act,res) permissions",0,872

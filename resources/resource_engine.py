@@ -1,3 +1,5 @@
+# Facade the simulation core talks to. Orchestrates tasks 1.6–1.8.
+
 from __future__ import annotations
 
 from .availability import AvailabilityModel
@@ -9,10 +11,13 @@ class ResourceEngine:
     def __init__(self, log, seed: int = 1):
         self.availability = AvailabilityModel(log)   # 1.6
         self.permissions = PermissionModel(log)      # 1.7
-        self.allocation = RandomAllocation(seed)     # 1.8 (swappable for Part 2)
+        self.allocation = RandomAllocation(seed)     # 1.8 (swappable for Part II)
+        # resources currently executing an activity
         self.busy: set[str] = set()
 
     def allocateResource(self, event) -> bool:
+        # Try to assign a resource to "event". Returns True on success.
+
         eligible = self.permissions.who_can(event.activity)         # 1.7
         available = self.availability.who_is_available(event.time)  # 1.6
         candidates = (eligible & available) - self.busy
