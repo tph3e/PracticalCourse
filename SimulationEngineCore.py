@@ -7,7 +7,8 @@ import csv
 import pm4py
 import random
 
-from DummyEngines import ArrivalEngine, BPMNEngine, ResourceEngine, ProcessTimeEngine, BranchingEngine
+from DummyEngines import ArrivalEngine, BPMNEngine, ProcessTimeEngine, BranchingEngine
+from resources import ResourceEngine
 from datetime import datetime, timedelta
 from Helper import *
 import xml.etree.ElementTree as ET
@@ -91,7 +92,7 @@ class Engine:
 
         self.arrivalEngine = ArrivalEngine(log, seed)
         self.bpmnEngine = BPMNEngine()
-        self.resourseEngine = ResourceEngine()
+        self.resourseEngine = ResourceEngine(log, seed)
         self.branchingEngine = BranchingEngine()
         self.processTimeEngine = ProcessTimeEngine(log)
         self.logger = EventLogger()
@@ -126,12 +127,6 @@ class Engine:
     def pop_event(self):
         return heapq.heappop(self.eventQueue)
     
-    def sample_old(self):
-        res = {}
-        res['case:ApplicationType']= random.choices(['New credit', 'Limit raise'], [0.1,0.9])
-        res['case:LoanGoal']= random.choices(['Existing loan takeover', 'Home improvement', 'Car', 'Other, see explanation', 'Unknown'], [0.29, 0.24, 0.28, 0.09, 0.10])
-        return res
-    
     def sample(self):
         idx = random.choices(self.freq.index,self.freq["prob"])
         row = self.freq.loc[idx]
@@ -144,8 +139,11 @@ class Engine:
     def checkWaitingProcesses(self):
             for event in self.waitingProcesses:
                 if(self.resourseEngine.allocateResource(event)):
-                    event.update({"case:concept:name": self.eventCounter,"lifecycle:transition": EventType.ACTIVITY_RESUME, "time:timestamp": self.simulationTime})
+                    self.waitingProcesses.pop(event)
+                    event.update({"EventID": self.eventCounter,"lifecycle:transition": EventType.ACTIVITY_RESUME, "time:timestamp": self.simulationTime})
                     self.eventCounter += 1
+                    endTimeActivity = self.processTimeEngine.getProcessingTime(event)+event.time
+                    self.push_event(endTimeActivity, EventType.ACTIVITY_END, event.activity, event.getAttribs(), event.eventCase)
                     self.logger.logEvent(event)
 
     def run(self, startTime, endTime):
@@ -185,6 +183,7 @@ class Engine:
                     event.eventType = EventType.ACTIVITY_SUSPEND
                     heapq.heappush(self.waitingProcesses, event)
             if event.eventType == EventType.ACTIVITY_END:
+                self.resourseEngine.releaseResource(event)
                 for newActivity in self.branchingEngine.getNextActivities(event,self.bpmnEngine.getPossibleNextActivities(event.activity)):
                     time = self.processTimeEngine.getWaitingTime(event, newActivity)
                     self.push_event(time+event.time, EventType.ACTIVITY_START, newActivity, event.getAttribs(), event.eventCase)

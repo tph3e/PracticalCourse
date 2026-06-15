@@ -3,3 +3,5 @@ pandas
 pm4py
 pyarrow
 scikit-learn
+scipy
+numpy

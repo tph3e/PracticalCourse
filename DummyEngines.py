@@ -65,3 +65,6 @@ class ResourceEngine:
 
     def allocateResource(self, data):
         return True
+
+    def releaseResource(self, event):
+        return True
