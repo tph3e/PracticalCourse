@@ -20,6 +20,9 @@ class ArrivalEngine:
 #for task 1.3
 class ProcessTimeEngine:
 
+    def __init__(self, log, seed=1):
+        self.seed=seed
+
     def train(self):
         print("Trained the model")
 
@@ -44,6 +47,10 @@ class BPMNEngine:
 
 #for task 1.5
 class BranchingEngine:
+
+    def __init__(self, seed=1):
+        return None
+
     def getNextActivities(self, event, possibleActivities)-> list:
         if len(possibleActivities)==0:
             return []
@@ -51,5 +58,9 @@ class BranchingEngine:
             return possibleActivities
 
 class ResourceEngine:
+
+    def __init__(self, log=None, seed=1):
+        return None
+
     def allocateResource(self, data):
         return True

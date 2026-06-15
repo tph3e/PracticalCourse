@@ -4,7 +4,8 @@ from enum import Enum, auto
 import heapq
 import pandas as pd
 import csv
-import heapq
+import pm4py
+import random
 
 from DummyEngines import ArrivalEngine, BPMNEngine, ResourceEngine, ProcessTimeEngine, BranchingEngine
 from datetime import datetime, timedelta
@@ -26,9 +27,6 @@ class EventLogger:
             writer.writeheader()
             for record in self.records:
                 writer.writerow(record.getAttribs())
-
-    #def toXes(self, filepath)
-
 
     def toXES(self, filepath="log.xes"):
 
@@ -89,22 +87,38 @@ class Engine:
         self.eventCounter=0
         self.caseCounter=0
         self.eventQueue = []
-        log = pd.read_csv(dataPath)
+        log = pm4py.read_xes(dataPath, variant="r4pm")
 
         self.arrivalEngine = ArrivalEngine(log, seed)
         self.bpmnEngine = BPMNEngine()
         self.resourseEngine = ResourceEngine()
         self.branchingEngine = BranchingEngine()
-        self.processTimeEngine = ProcessTimeEngine()
+        self.processTimeEngine = ProcessTimeEngine(log)
         self.logger = EventLogger()
+        self.train(log)
+
+    def train(self, log):
+        freq = (
+            log.groupby(["case:ApplicationType", "case:LoanGoal"])
+            .size()
+            .rename("count")
+            .reset_index()
+        )
+        total = freq["count"].sum()
+        freq["prob"] = freq["count"] / total
+        self.freq = freq
+        return True
+
     
     def push_event(self, timePoint: datetime, eventType, activity, data: dict = dict(), case=None):
+        if case == None:
+            case = Case(self.caseCounter)
+            self.caseCounter+=1
         if data!=None:
             data.update({"time:timestamp": timePoint, "lifecycle:transition": eventType, "concept:name": activity, "EventID": self.eventCounter})
         event = Event(eventType, activity, timePoint, self.eventCounter,case, data)
         self.eventCounter += 1
-        if case!=None:
-            case.addEvent(event)
+        case.addEvent(event)
 
         
         heapq.heappush(self.eventQueue, event)
@@ -112,9 +126,20 @@ class Engine:
     def pop_event(self):
         return heapq.heappop(self.eventQueue)
     
-    def sample(self):
+    def sample_old(self):
         res = {}
+        res['case:ApplicationType']= random.choices(['New credit', 'Limit raise'], [0.1,0.9])
+        res['case:LoanGoal']= random.choices(['Existing loan takeover', 'Home improvement', 'Car', 'Other, see explanation', 'Unknown'], [0.29, 0.24, 0.28, 0.09, 0.10])
         return res
+    
+    def sample(self):
+        idx = random.choices(self.freq.index,self.freq["prob"])
+        row = self.freq.loc[idx]
+        return {
+        "case:ApplicationType": row["case:ApplicationType"],
+        "case:LoanGoal": row["case:LoanGoal"]
+        }
+
     
     def checkWaitingProcesses(self):
             for event in self.waitingProcesses:
@@ -126,7 +151,8 @@ class Engine:
     def run(self, startTime, endTime):
         eventCounter = 0
 
-        self.push_event(startTime,EventType.CASE_ARRIVAL,None, self.sample())
+        self.push_event(startTime,EventType.CASE_ARRIVAL,Case(self.caseCounter), self.sample())
+        self.caseCounter+=1
         while self.eventQueue:
             event = self.pop_event()
             self.simulationTime= event.time
@@ -135,17 +161,18 @@ class Engine:
             if event.eventType == EventType.CASE_ARRIVAL:
                 data= self.sample()
                 firstActivity = self.bpmnEngine.getStartActivity(data)
+
+                #put event on top of event queue
+                self.push_event(event.time, EventType.ACTIVITY_START, firstActivity, data, event.eventCase)
+
                 newCase = Case(self.caseCounter)
                 self.caseCounter += 1
                 self.cases.append(newCase)
 
-                #put event on top of event queue
-                self.push_event(event.time, EventType.ACTIVITY_START, firstActivity, data, newCase)
-
                 #plan next case arrival
                 nextAttrivalTime = self.arrivalEngine.nextArrivalTime(event.time)+event.time
 
-                self.push_event(nextAttrivalTime, EventType.CASE_ARRIVAL,None, dict(), None)
+                self.push_event(nextAttrivalTime, EventType.CASE_ARRIVAL,None, dict(), newCase)
                 continue
             
 
