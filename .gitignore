@@ -1,0 +1,19 @@
+# Data (BPIC-17 event log)
+data/*
+!data/README.md
+
+# Generated simulation output 
+/log.csv
+/log.xes
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Virtual environments
+venv/
+env/

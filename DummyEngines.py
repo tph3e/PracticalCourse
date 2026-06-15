@@ -57,6 +57,7 @@ class BranchingEngine:
         else:
             return possibleActivities
 
+#for task 1.6 - 1.8
 class ResourceEngine:
 
     def __init__(self, log=None, seed=1):
