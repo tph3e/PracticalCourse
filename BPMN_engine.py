@@ -6,7 +6,7 @@ from pm4py.objects.petri_net.obj import PetriNet, Marking
 class BPMNEngine:
     def __init__(self):
         self.case_markings = {}
-        self.model_filename = "model_heuristic.bpmn"
+        self.model_filename = "models/model_heuristic.bpmn"
 
         try:
             bpmn_graph = pm4py.read_bpmn(self.model_filename)
