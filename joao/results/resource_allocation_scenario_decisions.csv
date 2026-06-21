@@ -1,0 +1,33 @@
+scenario,strategy,resource_id,task_id,activity,case_id,decision_type,reason
+balanced_tasks,Random,R1,T1,A,C1,assignment,Randomly selected among eligible waiting tasks.
+balanced_tasks,Random,R2,T2,B,C2,assignment,Randomly selected among eligible waiting tasks.
+balanced_tasks,ShortestQueue,R1,T1,A,C1,assignment,Selected task from shortest eligible activity queue
+balanced_tasks,ShortestQueue,R2,T2,B,C2,assignment,Selected task from shortest eligible activity queue
+balanced_tasks,ParkSong,R1,T1,A,C1,assignment,Assigned current task using Park-Song cost approximation.
+balanced_tasks,ParkSong,R2,T2,B,C2,assignment,Assigned current task using Park-Song cost approximation.
+balanced_tasks,ParkSongML,R1,T1,A,C1,assignment,Assigned current task using Park-Song cost approximation.
+balanced_tasks,ParkSongML,R2,T2,B,C2,assignment,Assigned current task using Park-Song cost approximation.
+scarce_resources,Random,R1,T2,B,C2,assignment,Randomly selected among eligible waiting tasks.
+scarce_resources,ShortestQueue,R1,T1,A,C1,assignment,Selected task from shortest eligible activity queue
+scarce_resources,ParkSong,R1,T1,A,C1,assignment,Assigned current task using Park-Song cost approximation.
+scarce_resources,ParkSongML,R1,T1,A,C1,assignment,Assigned current task using Park-Song cost approximation.
+unavailable_resource,Random,R2,T1,A,C1,assignment,Randomly selected among eligible waiting tasks.
+unavailable_resource,ShortestQueue,R2,T1,A,C1,assignment,Selected task from shortest eligible activity queue
+unavailable_resource,ParkSong,R2,T1,A,C1,assignment,Assigned current task using Park-Song cost approximation.
+unavailable_resource,ParkSongML,R2,T1,A,C1,assignment,Assigned current task using Park-Song cost approximation.
+priority_old_task,Random,R1,T2,B,C2,assignment,Randomly selected among eligible waiting tasks.
+priority_old_task,Random,R2,T3,B,C3,assignment,Randomly selected among eligible waiting tasks.
+priority_old_task,ShortestQueue,R1,T1,A,C1,assignment,Selected task from shortest eligible activity queue
+priority_old_task,ShortestQueue,R2,T2,B,C2,assignment,Selected task from shortest eligible activity queue
+priority_old_task,ParkSong,R1,T2,B,C2,assignment,Assigned current task using Park-Song cost approximation.
+priority_old_task,ParkSong,R2,T1,A,C1,assignment,Assigned current task using Park-Song cost approximation.
+priority_old_task,ParkSongML,R1,T2,B,C2,assignment,Assigned current task using Park-Song cost approximation.
+priority_old_task,ParkSongML,R2,T1,A,C1,assignment,Assigned current task using Park-Song cost approximation.
+future_task_only,Random,R1,,,,idle,No eligible waiting task available.
+future_task_only,Random,R2,,,,idle,No eligible waiting task available.
+future_task_only,ShortestQueue,R1,,,,idle,No eligible waiting task available
+future_task_only,ShortestQueue,R2,,,,idle,No eligible waiting task available
+future_task_only,ParkSong,R1,,,,idle,No feasible current or predicted candidate.
+future_task_only,ParkSong,R2,,,,idle,No feasible current or predicted candidate.
+future_task_only,ParkSongML,R1,,A,C_FUTURE_1,reservation,Selected predicted task. Resource remains idle/reserved as conservative strategic idling.
+future_task_only,ParkSongML,R2,,,,idle,No feasible current or predicted candidate.

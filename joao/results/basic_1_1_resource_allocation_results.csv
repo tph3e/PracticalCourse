@@ -1,0 +1,11 @@
+strategy,average_cycle_time,average_waiting_time,average_resource_occupation,resource_fairness,weighted_resource_fairness,scenario
+R-RRA,7.5,2.5,0.3,0.0,0.0,balanced_tasks
+R-SHQ,7.5,2.5,0.3,0.0,0.0,balanced_tasks
+R-RRA,8.0,2.0,0.3,0.0,0.0,scarce_resources
+R-SHQ,8.0,2.0,0.3,0.0,0.0,scarce_resources
+R-RRA,7.0,2.0,0.3,0.0,0.0,unavailable_resource
+R-SHQ,7.0,2.0,0.3,0.0,0.0,unavailable_resource
+R-RRA,9.5,2.5,0.3,0.0,0.0,priority_old_task
+R-SHQ,9.5,2.5,0.3,0.0,0.0,priority_old_task
+R-RRA,,,0.0,0.0,0.0,future_task_only
+R-SHQ,,,0.0,0.0,0.0,future_task_only

@@ -1,0 +1,11 @@
+strategy,average_cycle_time,average_waiting_time,average_resource_occupation,resource_fairness,weighted_resource_fairness,scenario
+ParkSong,7.5,2.5,0.3,0.0,0.0,balanced_tasks
+ParkSongML,7.5,2.5,0.3,0.0,0.0,balanced_tasks
+ParkSong,8.0,2.0,0.3,0.0,0.0,scarce_resources
+ParkSongML,8.0,2.0,0.3,0.0,0.0,scarce_resources
+ParkSong,7.0,2.0,0.3,0.0,0.0,unavailable_resource
+ParkSongML,7.0,2.0,0.3,0.0,0.0,unavailable_resource
+ParkSong,9.5,2.5,0.3,0.0,0.0,priority_old_task
+ParkSongML,9.5,2.5,0.3,0.0,0.0,priority_old_task
+ParkSong,,,0.0,0.0,0.0,future_task_only
+ParkSongML,,,0.0,0.0,0.0,future_task_only
