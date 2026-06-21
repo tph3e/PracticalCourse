@@ -44,6 +44,9 @@ class BPMNEngine:
             return ["activity3", "activity4"]
         else:
             return []
+        
+    def fire_activity(self, activity_name, case_id) -> bool:
+        return True
 
 #for task 1.5
 class BranchingEngine:
