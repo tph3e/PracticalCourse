@@ -1,21 +1,27 @@
-from Helper import *
+import sys
+import os
 import pm4py
 import pandas as pd
 from datetime import datetime, timedelta
 from scipy import stats
 import numpy as np
 import json
-import os
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+from Helper import *
 
 PATH_MODEL = "data/processing_time_models_basic.json"
 
 class ProcessTimeEngine:
 
-    models_basic = dict()
     rndm_state = 0
+    models_basic = dict()
 
-    def __init__(self, log: pd.DataFrame=pd.DataFrame()):
+    def __init__(self, log: pd.DataFrame=pd.DataFrame(), seed=1):
 
+        self.rndm_state = seed
         #if the models are already trained they do not have to be retrained
         if os.path.exists(PATH_MODEL):
             with open(PATH_MODEL, "r") as f:
@@ -136,7 +142,7 @@ class ProcessTimeEngine:
             return stats.lognorm.rvs(param["shape"], loc=0, scale=param["scale"], random_state= self.rndm_state)
         return timedelta(0)
     
-    def getProcessingTime_(self, event: Event):
+    def getProcessingTime(self, event: Event):
         return self.getProcessingTime_basic(event.activity)
     
     def getWaitingTime(self, event: Event):
@@ -157,7 +163,7 @@ class ProcessTimeEngine:
                 return timedelta(0)
             return self.sample_distrib(self.models_basic[activity+" waiting"]["distribution"], self.models_basic[activity]["parameters"])
         else:
-            return timedelta(0)   
+            return timedelta(0)
 
 
 if __name__ == "__main__":

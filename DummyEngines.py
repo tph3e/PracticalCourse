@@ -23,9 +23,6 @@ class ProcessTimeEngine:
     def __init__(self, log, seed=1):
         self.seed=seed
 
-    def train(self):
-        print("Trained the model")
-
     def getProcessingTime(self, event: Event)-> timedelta:
         return timedelta(minutes=20)
     

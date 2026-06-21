@@ -1,17 +1,21 @@
 from __future__ import annotations
-
 from enum import Enum, auto
 import heapq
 import pandas as pd
 import csv
 import pm4py
 import random
-
-from DummyEngines import ArrivalEngine, BPMNEngine, ProcessTimeEngine, BranchingEngine
+import os
+import sys
+from DummyEngines import ArrivalEngine, BPMNEngine, BranchingEngine
 from resources import ResourceEngine
+from processTimes import ProcessTimeEngine
+
 from datetime import datetime, timedelta
 from Helper import *
 import xml.etree.ElementTree as ET
+import scipy.stats as stats
+import numpy as np
 
 class EventLogger:
     
@@ -68,8 +72,6 @@ class EventLogger:
             xml_declaration=True
         )
 
-
-    
 class Engine:
     
     eventCounter: int
@@ -99,6 +101,7 @@ class Engine:
         self.train(log)
 
     def train(self, log):
+        #The distribution of requestedAmount is fitted for every pair of case:ApplicationType and case:LoanGoal seperatly
         freq = (
             log.groupby(["case:ApplicationType", "case:LoanGoal"])
             .size()
@@ -108,6 +111,28 @@ class Engine:
         total = freq["count"].sum()
         freq["prob"] = freq["count"] / total
         self.freq = freq
+
+        self.amount_dists = {}
+        
+        global_amounts = pd.to_numeric(log["case:RequestedAmount"], errors='coerce').dropna().to_numpy()
+        #A global fitting is calculated so that whenever the data for a pair of case:ApplicationType and case:LoanGoal is insufficient, it can be used.
+        shape, loc, scale = stats.lognorm.fit(global_amounts)
+        #The results are rounded because the additional numbers are not relevant.
+        self.global_params = (round(shape,2), round(loc,2), round(scale,2))
+        grouped = log.groupby(["case:ApplicationType", "case:LoanGoal"])
+        
+        for keys, group in grouped:
+            amounts = pd.to_numeric(group["case:RequestedAmount"], errors='coerce').dropna().to_numpy()
+            
+            if len(amounts) >= 5 and np.var(amounts) > 0:
+                try:
+                    shape, loc, scale = stats.lognorm.fit(amounts)
+                    self.amount_dists[keys] = (round(shape,2), round(loc,2), round(scale,2))
+                except Exception:
+                    self.amount_dists[keys] = self.global_params
+            else:
+                self.amount_dists[keys] = self.global_params
+
         return True
 
     
@@ -128,11 +153,23 @@ class Engine:
         return heapq.heappop(self.eventQueue)
     
     def sample(self):
-        idx = random.choices(self.freq.index,self.freq["prob"])
-        row = self.freq.loc[idx]
+        #sample according to the frequencies
+        sampled_idx = random.choices(self.freq.index, weights=self.freq["prob"])[0]
+        row = self.freq.loc[sampled_idx]
+    
+        app_type = row["case:ApplicationType"]
+        loan_goal = row["case:LoanGoal"]
+        lookup_key = (app_type, loan_goal)
+        
+        #sample the requestedAmount after looking up its distribution for this pair of applicationType and loanGoal
+        shape, loc, scale = self.amount_dists.get(lookup_key, self.global_params)
+        requested_amount = stats.lognorm.rvs(shape, loc, scale)
+
         return {
         "case:ApplicationType": row["case:ApplicationType"],
-        "case:LoanGoal": row["case:LoanGoal"]
+        "case:LoanGoal": row["case:LoanGoal"],
+        "case:RequestedAmount": round(requested_amount,1),
+        "EventOrigin": "Application"
         }
 
     
@@ -195,3 +232,4 @@ class Engine:
 if __name__ == "__main__":
     simulationEngine = Engine()
     simulationEngine.run(datetime(2000,1,1), datetime(2000,1,2))
+    print(simulationEngine.amount_dists)
