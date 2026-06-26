@@ -1,0 +1,139 @@
+\documentclass[
+  english,
+  font=times,
+  twocolumn,
+]{tumarticle}
+
+\usepackage{cite}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{placeins}
+
+\title{Group Assignment -- Business Process Prediction, Simulation, and Optimization}
+\subtitle{A Data-Driven Simulation Model and Resource-Allocation Optimization on the BPIC-17 Event Log}
+
+\author[email=aldo.patrone@tum.de]{Aldo Patrone}
+\author[email=member2@tum.de]{Group Member 2}
+\author[email=member3@tum.de]{Group Member 3}
+\author[email=member4@tum.de]{Group Member 4}
+
+\date\today
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We build a data-driven business process simulation of the BPI Challenge 2017 loan
+application process and optimize its resource allocation. In Part~I, a discrete-event
+simulation engine enacts a discovered process model and routes cases through it,
+with data-fitted case arrivals, processing times, branching decisions and resource
+availabilities, permissions and allocation. In Part~II, the random baseline
+allocation is replaced by heuristic and learning-based policies and evaluated on
+cycle time, resource occupation and fairness. We report our design decisions,
+empirical results and the applicability of each approach.
+\end{abstract}
+
+\section{Introduction}
+Business process simulation enables what-if analysis and optimization of process
+performance without intervening in the real system. In this group project we build
+a \emph{data-driven} simulation of the BPI Challenge 2017 (BPIC-17) loan application
+process and use it to study resource-allocation policies.
+
+\emph{Part~I} develops the simulation model: a discrete-event engine with a single
+global event queue (Sec.~\ref{sec:sim}) that simulates case arrivals, enforces a
+discovered process model, samples processing and waiting times, makes branching
+decisions and constrains execution by resource availabilities, permissions and
+allocation. \emph{Part~II} (Sec.~\ref{sec:opt}) optimizes the resource allocation
+procedure, comparing heuristic and reinforcement-learning policies under several
+metrics. All components are fit on the real BPIC-17 event log. Section~\ref{sec:ai}
+documents our use of AI tools.
+
+\section{Simulation Model (Part~I)}\label{sec:sim}
+
+\subsection{Simulation Engine Core}
+\textit{(Thomas, 1.1)}\quad
+
+\subsection{Case Arrivals}
+\textit{(Cam, 1.2)}\quad
+
+\subsection{Processing Times}
+\textit{(Thomas, 1.3)}\quad
+
+\subsection{Process Model}
+\textit{(Cam, 1.4)}\quad
+
+\subsection{Branching Decisions}
+\textit{(Joao, 1.5)}\quad
+
+\input{sections/resource_modeling}
+
+\subsection{Evaluation}\label{subsec:part1eval}
+
+\subsubsection{Engine Core}
+\textit{(Thomas)}\quad
+
+\subsubsection{Case Arrivals}
+\textit{(Cam)}\quad
+
+\subsubsection{Processing Times}
+\textit{(Thomas)}\quad
+
+\subsubsection{Process Model Conformance}
+\textit{(Cam)}\quad
+
+\subsubsection{Branching Decisions}
+\textit{(Joao)}\quad
+
+\input{sections/part1_evaluation}
+
+\section{Optimization (Part~II)}\label{sec:opt}
+
+\input{sections/heuristics}
+\input{sections/batch_allocation}
+
+\subsection{Advanced Formalization}\label{subsec:formalization}
+\input{sections/formalization_kunkler}
+\input{sections/formalization_park}
+
+\input{sections/rl_allocation}
+
+\subsection{Evaluation Metrics}\label{subsec:eval-metrics}
+\input{sections/metrics_simple}
+\input{sections/metrics_custom}
+
+\subsection{Evaluation}\label{subsec:eval}
+
+\subsubsection{Settings and Protocol}
+\textit{(Joao, F)}\quad
+
+\subsubsection{Base Heuristics}
+\textit{(Joao, A)}\quad
+
+\subsubsection{Batch Allocation}
+\textit{(Cam, B)}\quad
+
+\subsubsection{Kunkler Formalization}
+\textit{(Thomas, C)}\quad
+
+\subsubsection{Park Formalization}
+\textit{(Joao, C)}\quad
+
+\input{sections/rl_evaluation}
+
+\subsubsection{Cross-Method Synthesis}\label{ssub:cross-eval}
+\textit{(Joao, F)}\quad
+
+\subsubsection{Slide-23 Question}
+\textit{(Cam, H)}\quad
+
+\section{Use of AI Tools}\label{sec:ai}
+\input{sections/ai_tools}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\appendix
+\input{sections/appendix}
+
+\end{document}

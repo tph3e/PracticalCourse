@@ -31,6 +31,7 @@ For each of the following tasks an own file is created.
 ├── results/                  # generated tables/figures for the report
 ├── EngineCoreChanges.md      # engine core changes requested
 ├── models/                   # BPMN models (with corresponding PDF view)
+├── report/                   # Report basic framework (please continue writing and share it here)
 └── requirements.txt
 ```
 
