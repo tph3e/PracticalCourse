@@ -25,7 +25,8 @@ For each of the following tasks an own file is created.
 ├── SimulationEngineCore.py   # core (Task 1.1)
 ├── DummyEngines.py           # placeholder engines, replaced per task
 ├── Helper.py                 # Event / Case / EventType
-├── resources/                # tasks 1.1–1.8 
+├── resources/                # Part I: tasks 1.6–1.8 
+├── optimization/             # Part II: tasks 1.1–1.2 
 ├── scripts/                  # offline/helper scripts
 ├── notebooks/                # offline fitting
 ├── results/                  # generated tables/figures for the report

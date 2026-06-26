@@ -1,0 +1,6 @@
+metric,real BPIC-17
+avg cycle time [days],21.9
+avg occupation (total-window),0.262
+avg occupation (availability),0.932
+fairness Gini (busy),0.517
+fairness Gini (weighted),0.535

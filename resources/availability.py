@@ -1,4 +1,4 @@
-# 1.6 Resource availabilities
+# 1.6 (Part 1) Resource availabilities
 
 from __future__ import annotations
 

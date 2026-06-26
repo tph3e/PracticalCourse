@@ -1,4 +1,4 @@
-# 1.7 Resource permissions
+# 1.7 (Part 1) - Resource permissions
 
 from __future__ import annotations
 

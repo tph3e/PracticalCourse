@@ -1,4 +1,4 @@
-# 1.7 advanced — OrdinoR-style role discovery (fallback implementation)
+# 1.7 advanced (Part 1) — OrdinoR-style role discovery (fallback implementation)
 
 from __future__ import annotations
 
