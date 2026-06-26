@@ -35,7 +35,7 @@ def discover_roles(
     # floor: a resource that demonstrably performed an activity is always
     # permitted it, so the role model never drops below observed reality (no
     # activity ends up with zero permitted resources -> no deadlock). Roles only
-    # generalize *beyond* this floor to other members of the same group.
+    # generalize beyond this floor to other members of the same group.
     activity_to_resources: dict[str, set[str]] = {
         a: set(counts.index[counts[a] > 0].astype(str)) for a in activities
     }
