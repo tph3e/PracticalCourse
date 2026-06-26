@@ -1,0 +1,5 @@
+strategy,average_cycle_time,average_waiting_time,average_resource_occupation,resource_fairness,weighted_resource_fairness
+Random,5.5,1.5,0.3,0.0,0.0
+ShortestQueue,5.5,1.5,0.3,0.0,0.0
+ParkSong,5.5,1.5,0.3,0.0,0.0
+ParkSongML,,,0.0,0.0,0.0
