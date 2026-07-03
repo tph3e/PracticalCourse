@@ -1,0 +1,6 @@
+method,cycle_time_h,load_gini,combined
+random,12.43,0.297,0.956
+round-robin,12.6,0.302,0.97
+shortest-queue,12.16,0.236,0.85
+most-experienced,11.44,0.321,0.954
+PPO (MaskablePPO),12.45,0.259,0.897

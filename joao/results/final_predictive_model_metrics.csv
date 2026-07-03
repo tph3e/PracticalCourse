@@ -1,0 +1,2 @@
+model,train_ratio,train_events,test_events,train_cases,test_cases,feature_columns,accuracy,macro_f1,weighted_f1,n_samples
+PredictiveML_with_ProbabilityFallback,0.8,961208,241059,25207,6302,"case:ApplicationType, case:LoanGoal, case:RequestedAmount, CreditScore, EventOrigin, org:resource",0.5574012601391822,0.5075057464896935,0.5832537791840541,218706

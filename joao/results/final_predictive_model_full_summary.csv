@@ -1,0 +1,2 @@
+model,training_mode,train_events,train_cases,feature_columns,reference_validation_model
+PredictiveML_with_ProbabilityFallback_FULL,full_log,1202267,31509,"case:ApplicationType, case:LoanGoal, case:RequestedAmount, CreditScore, EventOrigin, org:resource",final_predictive_model_0_7.pkl

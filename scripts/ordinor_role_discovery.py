@@ -1,4 +1,4 @@
-# 1.7 advanced — role discovery with OrdinoR proper (reference [3])
+# 1.7 (Part 2) advanced — role discovery with OrdinoR proper (reference: Gyunam Park et al. Paper)
 
 from __future__ import annotations
 

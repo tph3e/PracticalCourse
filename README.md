@@ -22,16 +22,21 @@ For each of the following tasks an own file is created.
 ```
 .
 ├── data/                     # BPIC-17 log (not in repo)
-├── SimulationEngineCore.py   # core (Task 1.1)
-├── DummyEngines.py           # placeholder engines, replaced per task
-├── Helper.py                 # Event / Case / EventType
-├── resources/                # tasks 1.1–1.8 
-├── scripts/                  # offline/helper scripts
-├── notebooks/                # offline fitting
-├── results/                  # generated tables/figures for the report
-├── EngineCoreChanges.md      # engine core changes requested
 ├── models/                   # BPMN models (with corresponding PDF view)
-└── requirements.txt
+├── notebooks/                # offline fitting
+├── optimization/             # Part II: task 1.1–1.2 
+├── processTimes/             # Part I: task 1.3 
+├── report/                   # Report basic framework (please continue writing and share it here)
+├── resources/                # Part I: task 1.6–1.8 
+├── results/                  # generated tables/figures for the report
+├── scripts/                  # offline/helper scripts
+├── arrival_engine.py         # Part I: task 1.2
+├── BPMN_engine.py            # Part I: task 1.4 
+├── DummyEngines.py           # placeholder engines, replaced per task
+├── EngineCoreChanges.md      # engine core changes requested
+├── Helper.py                 # Event / Case / EventType
+├── requirements.txt
+└── SimulationEngineCore.py   # Part I: task 1.1 (Core)
 ```
 
 Details: TBD

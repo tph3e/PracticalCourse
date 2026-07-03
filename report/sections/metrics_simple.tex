@@ -1,0 +1,33 @@
+\subsubsection{Simple Metrics}\label{ssub:metrics}
+\textit{(Aldo Patrone)}\quad
+Three metrics quantify allocation quality, all computed from the simulation event log
+(identical schema to the real log, so they are validated against it).
+\emph{Average cycle time} is the per-case span. \emph{Average resource occupation}
+is busy time over available time, where busy time is the \emph{union} of a
+resource's activity intervals rather than their sum, since real resources juggle
+overlapping waiting work items and summing would exceed $100\%$. The denominator is
+each resource's available time from the learned 1.6 calendars rather than the
+wall-clock window, which is far more meaningful (Table~\ref{tab:metrics_ref}: $26\%$
+vs.\ $93\%$). \emph{Resource fairness} is the Gini coefficient over per-resource load
+(lower is fairer), with a weighted variant that normalizes by availability. The same
+\emph{compute\_all} routine doubles as the reward signal for the RL policy
+(Sec.~\ref{subsec:rl}) and as the metric basis for the overall method comparison
+(Sec.~\ref{ssub:cross-eval}).
+
+\begin{table}[!h]
+    \caption{Evaluation metrics on the real BPIC-17 log.}
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lr}
+        \toprule
+        \textbf{Metric} & \textbf{Value} \\
+        \midrule
+        Average cycle time             & $21.9$ days \\
+        Occupation (total window)       & $0.26$ \\
+        Occupation (availability-based) & $0.93$ \\
+        Fairness Gini (busy)            & $0.52$ \\
+        Fairness Gini (weighted)        & $0.54$ \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:metrics_ref}
+\end{table}
