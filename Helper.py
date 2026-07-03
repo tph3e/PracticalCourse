@@ -25,6 +25,17 @@ class EventType(Enum):
     ACTIVITY_WITHDRAW = "withdraw"
     ACTIVITY_ABORT = "ate_abort"
 
+
+ORDER = {
+    EventType.ACTIVITY_WITHDRAW: 0,
+    EventType.ACTIVITY_ABORT: 1, 
+    EventType.ACTIVITY_END: 2,
+    EventType.ACTIVITY_SUSPEND: 3,
+    EventType.ACTIVITY_RESUME: 4,
+    EventType.ACTIVITY_START: 5,
+    EventType.CASE_ARRIVAL: 6
+}
+
 class Case:
     caseId: str
     events: list
@@ -56,10 +67,16 @@ class Case:
         self.activities=[]
         self.applicationType=""
 
-class Event:
+    def getActivityCount(self, activity):
+        count=0
+        for event in self.events:
+            if event.activity == activity:
+                count+=1
+        return count
 
+class Event:
     action=""
-    activity: object
+    activity: str
     resource=""
     time: datetime
     eventId: int
@@ -78,10 +95,13 @@ class Event:
         self.activity=activity
 
         self.update(data)
-
-        
     
     def __lt__(self, other):
+        if self.time== other.time:
+            if ORDER[self.eventType]<ORDER[other.eventType]:
+                return self.eventCase.caseId<other.eventCase.caseId
+            else:
+                return ORDER[self.eventType]<ORDER[other.eventType]
         return self.time < other.time
 
     def __str__(self):

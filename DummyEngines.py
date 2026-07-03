@@ -58,7 +58,7 @@ class BranchingEngine:
         if len(possibleActivities)==0:
             return []
         else:
-            return possibleActivities
+            return possibleActivities[0]
 
 #for task 1.6 - 1.8
 class ResourceEngine:
