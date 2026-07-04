@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from scipy import stats
 import sklearn.ensemble, sklearn.pipeline, sklearn.compose, sklearn.preprocessing, sklearn.impute
+from sklearn.linear_model import QuantileRegressor
 import numpy as np
 import json
 import joblib
@@ -14,23 +15,27 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 from Helper import *
 
-PATH_MODEL_BASIC = "processTimes/processing_time_models_basic.pkl"
-PATH_MODEL_ADVANCED = "processTimes/processing_time_models_advanced.pkl"
+PATH_MODELS = "processTimes/processing_time_models.pkl"
 
 class ProcessTimeEngine:
 
     rndm_state = 1
     models_basic = dict()
     models_advanced = dict()
+    models_quantiles = dict()
+
+    fallback_models_basic = dict()
 
     def __init__(self, log: pd.DataFrame=pd.DataFrame(), seed=1):
 
         self.rndm_state = seed
         #if the models are already trained they do not have to be retrained
-        if os.path.exists(PATH_MODEL_BASIC) and os.path.exists(PATH_MODEL_ADVANCED):
-            self.models_basic = joblib.load(PATH_MODEL_BASIC)
-        
-            self.models_advanced = joblib.load(PATH_MODEL_ADVANCED)
+        if os.path.exists(PATH_MODELS):
+            models = joblib.load(PATH_MODELS)
+            self.models_basic = models["basic"]
+            self.models_quantiles = models["quantiles"]
+            self.models_advanced = models["advanced"]
+            self.fallback_models_basic = models.get("fallback_basic", {})
             return
         #if the log is empty (no propper log was given), the log is manually loaded
         if(log.empty):
@@ -40,70 +45,74 @@ class ProcessTimeEngine:
         self.train_basic(event_times)
         self.train_advanced(event_times)
 
+        models={}
+        models["basic"]=self.models_basic
+        models["quantiles"]=self.models_quantiles
+        models["advanced"]=self.models_advanced
+        models["fallback_basic"]=self.fallback_models_basic
+        joblib.dump(models, PATH_MODELS)
+
+    def _fit_distribution(self, times_data, null_count):
+        """Helper method to fit distributions and return the best one based on AIC."""
+        potential_distribs = []
+        
+        # poisson
+        lam = times_data.mean()
+        loglikelihood = np.sum(stats.poisson.logpmf(times_data, lam))
+        potential_distribs.append({
+            "distribution": "poisson", "parameters": {"lambda": lam}, "AIC": 2*1 - 2*loglikelihood
+        })
+        
+        # gamma
+        shape, loc, scale = stats.gamma.fit(times_data, floc=0)
+        loglikelihood = np.sum(stats.gamma.logpdf(times_data, shape, loc, scale))
+        potential_distribs.append({
+            "distribution": "gamma", "parameters": {"shape": shape, "scale": scale}, "AIC": 2*2 - 2*loglikelihood
+        })
+
+        # lognorm
+        shape, loc, scale = stats.lognorm.fit(times_data, floc=0)
+        loglikelihood = np.sum(stats.lognorm.logpdf(times_data, shape, loc, scale))
+        potential_distribs.append({
+            "distribution": "lognorm", "parameters": {"shape": shape, "scale": scale}, "AIC": 2*2 - 2*loglikelihood
+        })
+
+        potential_distribs = pd.DataFrame(potential_distribs)
+        distrib_best = potential_distribs.loc[potential_distribs["AIC"].idxmin(), :]
+        
+        return {
+            "distribution": distrib_best["distribution"],
+            "parameters": distrib_best["parameters"],
+            "0-proportion": null_count / (len(times_data) + null_count)
+        }
+
     def train_basic(self, event_times):
-        for activity, group in event_times.groupby("concept:name"):
-            for kind in ("processing", "waiting"):
-                potential_distribs = []
-                times_data = group[kind+"_time"]
-                null_count = sum(times_data==0)
-                times_data=times_data[times_data>0]
-                
-                #if there is not enough data to make a good statement, return
-                if(len(times_data)<4):
-                    continue
+            #fallback training
+            for activity, group in event_times.groupby("concept:name"):
+                for kind in ("processing", "waiting"):
+                    times_data = group[kind+"_time"]
+                    null_count = sum(times_data == 0)
+                    times_data = times_data[times_data > 0]
+                    
+                    if len(times_data) >= 4 and np.unique(times_data).size > 1:
+                        self.fallback_models_basic[f"{activity}_{kind}"] = self._fit_distribution(times_data, null_count)
 
-                is_constant = np.unique(times_data).size == 1
-                if is_constant:
-                    continue
-                #pois
-                lam = times_data.mean()
-                loglikelihood = np.sum(stats.poisson.logpmf(times_data, lam))
-                aic = 2*1-2*loglikelihood
-                potential_distribs.append({
-                    "distribution": "poisson",
-                    "parameters": {"lambda": lam},
-                    "AIC": aic
-                })
-                #gamma
-                shape, loc, scale = stats.gamma.fit(times_data, floc=0)
-                loglikelihood = np.sum(stats.gamma.logpdf(times_data, shape, loc, scale))
-                aic = 2*2-2*loglikelihood
-                potential_distribs.append({
-                    "distribution": "gamma",
-                    "parameters": {"shape": shape, "scale": scale},
-                    "AIC": aic
-                })
+            for (activity, resource), group in event_times.groupby(["concept:name", "org:resource"]):
+                for kind in ("processing", "waiting"):
+                    times_data = group[kind+"_time"]
+                    null_count = sum(times_data == 0)
+                    times_data = times_data[times_data > 0]
+                    
+                    if len(times_data) < 4 or np.unique(times_data).size <= 1:
+                        continue
 
-
-                #lognorm
-                shape, loc, scale = stats.lognorm.fit(times_data, floc=0)
-                loglikelihood = np.sum(stats.lognorm.logpdf(times_data, shape, loc, scale))
-                aic = 2*2-2*loglikelihood
-                potential_distribs.append({
-                    "distribution": "lognorm",
-                    "parameters": {"shape": shape, "scale": scale},
-                    "AIC": aic
-                })
-
-                potential_distribs = pd.DataFrame(potential_distribs)
-
-                # Best distribution nach AIC
-                distrib_best = potential_distribs.loc[potential_distribs["AIC"].idxmin(), :]
-
-                self.models_basic[str(activity)+ " "+str(kind)]={
-                    "distribution": distrib_best["distribution"],
-                    "parameters": distrib_best["parameters"],
-                    "0-proportion": null_count/len(times_data)
-                }
-        joblib.dump(self.models_basic, PATH_MODEL_BASIC)
-
-
-    
+                    self.models_basic[f"{activity}_{resource}_{kind}"] = self._fit_distribution(times_data, null_count)
 
     def train_advanced(self, event_times: pd.DataFrame):
         self.models_advanced = {}
+        quantiles = [i/10 for i in range(1,10)]
         numeric_features = ["case:RequestedAmount", "HourOfDay", "Weekday"]
-        categorical_features = ["case:ApplicationType"]
+        categorical_features = ["case:ApplicationType", "org:resource"]
 
         preprocessor = sklearn.compose.ColumnTransformer(
             transformers=[
@@ -111,7 +120,7 @@ class ProcessTimeEngine:
                 ('cat', sklearn.preprocessing.OneHotEncoder(handle_unknown='ignore'), categorical_features)
             ])
 
-        for activity, group in event_times.groupby("concept:name"):
+        for (activity, resource), group in event_times.groupby(["concept:name", "org:resource"]):
             #model can only be trained with sufficient data
             if len(group) < 10:
                 continue
@@ -125,10 +134,19 @@ class ProcessTimeEngine:
                     ('preprocessor', preprocessor),
                     ('regressor', sklearn.ensemble.RandomForestRegressor(n_estimators=10, random_state=self.rndm_state, max_depth=5))
                 ])
-                
+
                 model.fit(X, y)
-                self.models_advanced[f"{activity}_{kind}"] = model
-        joblib.dump(self.models_advanced, PATH_MODEL_ADVANCED)
+                self.models_advanced[f"{activity}_{resource}_{kind}"] = model
+
+                results_quantiles ={}
+                for q in quantiles:
+
+                    regressor = QuantileRegressor(quantile=q, alpha=0.0, solver='highs')
+                    pipeline = sklearn.pipeline.Pipeline(steps=[('preprocessor', preprocessor),('regressor', regressor)])
+                    pipeline.fit(X, y)
+                    results_quantiles[q]=pipeline
+                
+                    self.models_quantiles[f"{activity}_{resource}_{kind}"]= results_quantiles
 
     def format_data(self, log: pd.DataFrame):
         # Sort events chronologisch
@@ -175,6 +193,7 @@ class ProcessTimeEngine:
                         "concept:name": activity,
                         "processing_time": total_active_time.seconds,
                         "waiting_time": total_waiting_time.seconds,
+                        "org:resource": log_entry["org:resource"],
                         "case:RequestedAmount": requestedAmount,
                         "case:ApplicationType": applicationType,
                         "HourOfDay": first_date.hour,
@@ -200,31 +219,38 @@ class ProcessTimeEngine:
     def getProcessingTimes_advanced(self, event: Event) -> timedelta:
         return self.sampleTime_advanced(event, "waiting")       
 
-    def sampleTime_basic(self, activity, kind) -> timedelta:
-        if(activity in self.models_basic):
-            if(np.random.rand() < self.models_basic[f"{activity} {kind}"]["0-proportion"]):
+    def sampleTime_basic(self, activity, resource="", kind="processing") -> timedelta:
+        key = f"{activity}_{resource}_{kind}"
+        if key in self.models_basic:
+            if(np.random.rand() < self.models_basic[key]["0-proportion"]):
                 return timedelta(0)
-            return self.sample_distrib(self.models_basic[f"{activity} {kind}"]["distribution"], self.models_basic[activity]["parameters"])
+            return self.sample_distrib(self.models_basic[key]["distribution"], self.models_basic[key]["parameters"])
         else:
             return timedelta(0)
     
-    def sampleTime_advanced(self, event: Event, kind) -> timedelta:        
-        #If the activity is not modelled, return 0
-        if f"{event.activity}_{kind}" not in self.models_advanced:
-            return timedelta(0)
+    def sampleTime_advanced(self, event: Event, kind="processing") -> timedelta:        
+        key = f"{event.activity}_{event.resource}_{kind}"
+        if key not in self.models_advanced:
+            return self.sampleTime_basic(event.activity, event.resource, kind)
             
-        model = self.models_advanced[f"{event.activity}_{kind}"]
+        model = self.models_advanced[key]
         
         context_df = pd.DataFrame([{
             "case:RequestedAmount": float(event.eventCase.requestedAmount),
             "case:ApplicationType": str(event.eventCase.applicationType),
             "HourOfDay": event.time.hour,
-            "Weekday": event.time.weekday()
+            "Weekday": event.time.weekday(),
+            "org:resource": str(event.resource)
         }])
         predicted_seconds = model.predict(context_df)[0]
         predicted_seconds = max(0.0, float(predicted_seconds))
-        return timedelta(int(predicted_seconds))
-
+        return timedelta(seconds=int(predicted_seconds))
+    
+    def getQuantileValue(self, activity, resource, kind, q_value):
+        key = f"{activity}_{resource}_{kind}"
+        if key in self.models_quantiles:
+            return self.models_quantiles[key][q_value]
+        return None
 
 if __name__ == "__main__":
     processTimeEngine = ProcessTimeEngine()
