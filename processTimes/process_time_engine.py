@@ -36,21 +36,25 @@ class ProcessTimeEngine:
             self.models_quantiles = models["quantiles"]
             self.models_advanced = models["advanced"]
             self.fallback_models_basic = models.get("fallback_basic", {})
+            print("[ProcessTimeEngine] Loaded models successfully")
             return
-        #if the log is empty (no propper log was given), the log is manually loaded
-        if(log.empty):
-            log = pm4py.convert_to_dataframe(pm4py.read_xes('data/logData.xes', variant="r4pm"))
         
-        event_times = self.format_data(log)
-        self.train_basic(event_times)
-        self.train_advanced(event_times)
+        else:
+            #if the log is empty (no propper log was given), the log is manually loaded
+            if(log.empty):
+                log = pm4py.convert_to_dataframe(pm4py.read_xes('data/logData.xes', variant="r4pm"))
+            
+            event_times = self.format_data(log)
+            self.train_basic(event_times)
+            self.train_advanced(event_times)
+            print("[ProcessTimeEngine] Trained models successfully")
 
-        models={}
-        models["basic"]=self.models_basic
-        models["quantiles"]=self.models_quantiles
-        models["advanced"]=self.models_advanced
-        models["fallback_basic"]=self.fallback_models_basic
-        joblib.dump(models, PATH_MODELS)
+            models={}
+            models["basic"]=self.models_basic
+            models["quantiles"]=self.models_quantiles
+            models["advanced"]=self.models_advanced
+            models["fallback_basic"]=self.fallback_models_basic
+            joblib.dump(models, PATH_MODELS)
 
     def _fit_distribution(self, times_data, null_count):
         """Helper method to fit distributions and return the best one based on AIC."""
@@ -211,10 +215,12 @@ class ProcessTimeEngine:
         return timedelta(0)
     
     def getProcessingTime(self, event: Event, activity=None) -> timedelta:
-        return self.sampleTime_advanced(event, "processing")
+        return self.sampleTime_basic(event.activity, event.resource, "processing")
+        #return self.sampleTime_advanced(event, "processing")
     
     def getWaitingTime(self, event: Event, activity=None) -> timedelta:
-        return self.sampleTime_advanced(event, "waiting")
+        return self.sampleTime_basic(event.activity, event.resource, "waiting")
+        #return self.sampleTime_advanced(event, "waiting")
     
     def getProcessingTimes_advanced(self, event: Event) -> timedelta:
         return self.sampleTime_advanced(event, "waiting")       
@@ -223,7 +229,7 @@ class ProcessTimeEngine:
         key = f"{activity}_{resource}_{kind}"
         if key in self.models_basic:
             if(np.random.rand() < self.models_basic[key]["0-proportion"]):
-                return timedelta(0)
+                return timedelta(minutes=1)
             return self.sample_distrib(self.models_basic[key]["distribution"], self.models_basic[key]["parameters"])
         else:
             return timedelta(0)

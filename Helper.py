@@ -1,9 +1,7 @@
 from __future__ import annotations
-
+import pandas as pd
 from enum import Enum, auto
 from datetime import datetime, timedelta
-
-import pandas as pd
 
 offerDefault = {'FirstWithdrawalAmount': None,
  'NumberOfTerms': None,
@@ -117,7 +115,7 @@ class Event:
             'time:timestamp': self.time,
             'case:LoanGoal': self.eventCase.loanGoal,
             'case:ApplicationType': self.eventCase.applicationType,
-            'case:concept:name': self.eventCase.caseId,
+            'case:concept:name': str(self.eventCase.caseId),
             'case:RequestedAmount': self.eventCase.requestedAmount}
             base.update(self.offerData)
             return base

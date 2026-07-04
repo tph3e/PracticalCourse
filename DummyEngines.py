@@ -55,6 +55,8 @@ class BranchingEngine:
         return None
 
     def getNextActivities(self, event, possibleActivities)-> list:
+        if np.random.random() <0.5:
+            return []
         if len(possibleActivities)==0:
             return []
         else:

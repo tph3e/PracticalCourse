@@ -39,14 +39,6 @@ class EventLogger:
         df = pd.DataFrame([record.getAttribs() for record in self.records])
         df.to_csv(filepath, index=False, encoding="utf-8")
 
-        """fieldnames = list(self.records[0].getAttribs().keys())
-
-        with open(PATH_LOG+".csv", mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
-            writer.writeheader()
-            for record in self.records:
-                writer.writerow(record.getAttribs())"""
-
     def to_xes(self, filepath=PATH_LOG+".xes") -> None:
 
         if not self.records:
@@ -55,47 +47,10 @@ class EventLogger:
         df = pd.DataFrame([record.getAttribs() for record in self.records])
         pm4py.write_xes(df, filepath)
 
-        """log = ET.Element("log",{"xes.version": "1.0",
-                "xes.features": "nested-attributes",
-                "xmlns": "http://www.xes-standard.org/"})
-
-        traces = {}
-        for event in self.records:
-            case_id = event.eventCase.caseId
-            if case_id not in traces:
-                traces[case_id] = []
-            traces[case_id].append(event)
-
-
-        for case_id, events in traces.items():
-            trace = ET.SubElement(log, "trace")
-
-            ET.SubElement(
-                trace,
-                "string",{"key": "concept:name",
-                    "value": str(case_id)})
-
-            for event in events:
-                event_elem = ET.SubElement(trace, "event")
-                for key, value in event.getAttribs().items():
-                    if value is None:
-                        continue
-                    else:
-                        ET.SubElement(event_elem,"string",{"key": key, "value": str(value)})
-
-        tree = ET.ElementTree(log)
-        ET.indent(tree, space="  ")
-
-        tree.write(
-            filepath,
-            encoding="utf-8",
-            xml_declaration=True
-        )"""
-
-        def get_log(self) -> pd.DataFrame:
-            if not self.records:
-                return pd.DataFrame()
-            return pd.DataFrame([record.getAttribs() for record in self.records])
+    def get_log(self) -> pd.DataFrame:
+        if not self.records:
+            return pd.DataFrame()
+        return pd.DataFrame([record.getAttribs() for record in self.records])
 
 class Engine:
     
@@ -210,7 +165,7 @@ class Engine:
             for event in unallocated_events:
                 heapq.heappush(self.waiting_processes, event)
 
-    def run(self, start_time: datetime, end_time: datetime) -> None:
+    def run(self, start_time: datetime, end_time: datetime, csvOrxes="csv") -> None:
         event_counter = 0
 
         self.push_event(start_time,EventType.CASE_ARRIVAL,"", self.sample_case_data(), Case(self.case_counter))
@@ -218,6 +173,7 @@ class Engine:
         while self.event_queue:
             event = self.pop_event()
             self.simulation_time= event.time
+            print(event.time)
             if self.simulation_time > end_time:
                 break
             if event.eventType == EventType.CASE_ARRIVAL:
@@ -249,15 +205,19 @@ class Engine:
             if event.eventType == EventType.ACTIVITY_END:
                 self.bpmnEngine.fire_activity(event.activity, event.eventCase.caseId)
                 self.resourseEngine.releaseResource(event)
-                for newActivity in self.branchingEngine.getNextActivities(event,self.bpmnEngine.getPossibleNextActivities(event.activity)):
+                newActivity = self.branchingEngine.getNextActivities(event,self.bpmnEngine.getPossibleNextActivities(event.activity))
+                if newActivity ==[]:
                     time = self.processTimeEngine.getWaitingTime(event, newActivity)
                     self.push_event(time+event.time, EventType.ACTIVITY_START, newActivity, event.getAttribs(), event.eventCase)
                 self.check_waiting_processes()
             
             self.logger.log_event(event)
             self.check_waiting_processes()# to be checked
-        self.logger.to_csv()
+        if csvOrxes=="csv":
+            self.logger.to_csv()
+        if csvOrxes=="xes":
+            self.logger.to_xes()
 
 if __name__ == "__main__":
     simulation_engine = Engine()
-    simulation_engine.run(datetime(2000,1,1), datetime(2000,1,2))
+    simulation_engine.run(datetime(2000,1,1), datetime(2000,1,3))
