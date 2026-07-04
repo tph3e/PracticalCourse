@@ -229,7 +229,7 @@ class ProcessTimeEngine:
         key = f"{activity}_{resource}_{kind}"
         if key in self.models_basic:
             if(np.random.rand() < self.models_basic[key]["0-proportion"]):
-                return timedelta(minutes=1)
+                return timedelta(minutes=0)
             return self.sample_distrib(self.models_basic[key]["distribution"], self.models_basic[key]["parameters"])
         else:
             return timedelta(0)
