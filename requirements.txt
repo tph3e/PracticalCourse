@@ -1,6 +1,7 @@
 # Core data / process mining
 pandas
 pm4py
+rustxes
 pyarrow
 scikit-learn
 scipy
