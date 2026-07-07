@@ -1,67 +1,50 @@
 # EngineCore Anpassungen für die ResourceEngine 
 
 
-## 1. checkWaitingProcesses crasht
-self.waitingProcesses.pop(event) schlägt fehl: list.pop() erwartet einen Index,
-kein Event -> TypeError beim ersten Resume. Außerdem wird über die Liste iteriert,
-während sie verändert wird. 
+## 1. Sim-Fenster ohne Arbeitszeit 
+Es ist kein Bug im ResourceEngine, sondern das gewählte Zeitfenster.
 
-**Aktuell (Zeile 176):**
+
+**Aktuell (Zeile 223):**
 ```python
-    def checkWaitingProcesses(self):
-            for event in self.waitingProcesses:
-                if(self.resourseEngine.allocateResource(event)):
-                    self.waitingProcesses.pop(event)
-                    event.update({"EventID": self.eventCounter,"lifecycle:transition": EventType.ACTIVITY_RESUME, "time:timestamp": self.simulationTime})
-                    self.eventCounter += 1
-                    endTimeActivity = self.processTimeEngine.getProcessingTime(event)+event.time
-                    self.push_event(endTimeActivity, EventType.ACTIVITY_END, event.activity, event.getAttribs(), event.eventCase)
-                    self.logger.logEvent(event)
+    simulation_engine.run(datetime(2000,1,1), datetime(2000,1,3))
 ```
 
-**Vorschlag:**
+
+2000-01-01 ist ein Samstag, 2000-01-03 00:00 ein Montag Mitternacht. Das
+Fenster enthält also keine einzige Arbeitsstunde. 
+
+
+**Vorschlag:** ein Fenster mit Werktag-Arbeitszeit wählen, z.B.
 ```python
-    def checkWaitingProcesses(self):
-            for event in list(self.waitingProcesses):          # über eine Kopie iterieren
-                if(self.resourseEngine.allocateResource(event)):
-                    self.waitingProcesses.remove(event)         # pop braucht Index
-                    event.update({"EventID": self.eventCounter,"lifecycle:transition": EventType.ACTIVITY_RESUME, "time:timestamp": self.simulationTime})
-                    self.eventCounter += 1
-                    endTimeActivity = self.processTimeEngine.getProcessingTime(event)+event.time
-                    self.push_event(endTimeActivity, EventType.ACTIVITY_END, event.activity, event.getAttribs(), event.eventCase)
-                    self.logger.logEvent(event)
+    simulation_engine.run(datetime(2000,1,3,9,0), datetime(2000,1,31))
 ```
 
-## 2, Resume auch bei Zeitfortschritt
-checkWaitingProcesses() wird bisher nur im ACTIVITY_END-Block aufgerufen. Also nur,
-wenn eine andere Aktivität endet. Ressourcen werden aber auch durch Zeit verfügbar
-(Verfügbarkeitskalender, 1.6). Sind nachts alle Fälle suspendiert, feuert kein
-ACTIVITY_END -> sie resumen nie -> Deadlock.
 
-**Aktuell (Zeile 222):**
+
+## 2. Branching: Folgeaktivitäten-Schleife invertiert 
+Taucht erst auf, sobald Punkt 1 behoben ist 
+
+getNextActivities() liefert eine Liste. Der aktuelle Code weist die ganze
+Liste newActivity zu und prüft == [] 
+
+
+**Aktuell (Zeile 208):**
 ```python
-            if event.eventType == EventType.ACTIVITY_END:
-                self.resourseEngine.releaseResource(event)
-                for newActivity in self.branchingEngine.getNextActivities(event,self.bpmnEngine.getPossibleNextActivities(event.activity)):
-                    time = self.processTimeEngine.getWaitingTime(event, newActivity)
-                    self.push_event(time+event.time, EventType.ACTIVITY_START, newActivity, event.getAttribs(), event.eventCase)
-                self.checkWaitingProcesses()
-
-            self.logger.logEvent(event)
-        self.logger.toXES()
+            newActivity = self.branchingEngine.getNextActivities(event,self.bpmnEngine.getPossibleNextActivities(event.activity))
+            if newActivity ==[]:
+                time = self.processTimeEngine.getWaitingTime(event, newActivity)
+                self.push_event(time+event.time, EventType.ACTIVITY_START, newActivity, event.getAttribs(), event.eventCase)
 ```
 
-**Vorschlag:**
+
+Folge: bei vorhandenen Folgeaktivitäten passiert nichts (Fall stoppt nach der ersten
+Aktivität). Bei Fallende wird ein Müll-Event mit Aktivität [] gepusht.
+
+
+**Vorschlag:** über die Liste iterieren und nur bei nicht-leerer Liste pushen.
 ```python
-            if event.eventType == EventType.ACTIVITY_END:
-                self.resourseEngine.releaseResource(event)
-                for newActivity in self.branchingEngine.getNextActivities(event,self.bpmnEngine.getPossibleNextActivities(event.activity)):
-                    time = self.processTimeEngine.getWaitingTime(event, newActivity)
-                    self.push_event(time+event.time, EventType.ACTIVITY_START, newActivity, event.getAttribs(), event.eventCase)
-                # checkWaitingProcesses() hier raus (siehe unten)
-
-            self.logger.logEvent(event)
-            self.checkWaitingProcesses()   # nach jedem Event prüfen (Ressource frei via END oder via Zeit/Verfügbarkeit)
-        self.logger.toXES()
+            for na in self.branchingEngine.getNextActivities(event, self.bpmnEngine.getPossibleNextActivities(event.activity)):
+                time = self.processTimeEngine.getWaitingTime(event, na)
+                self.push_event(time+event.time, EventType.ACTIVITY_START, na, event.getAttribs(), event.eventCase)
 ```
-
