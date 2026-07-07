@@ -30,31 +30,59 @@ class BPMNEngine:
                     return transition.label
         return None
     
-    def getPossibleNextActivities(self, current_activity, case_id = None) -> list:
+    def getPossibleNextActivities(self, current_activity, case_id=None) -> list:
         if case_id is None:
-            return [self.getStartActivity()]
-        if case_id not in self.case_markings:
-            self.initialize_case(case_id)
+            # Falls kein case_id übergeben wird, initialisieren wir Dummy-Markierungen, 
+            # um die Startaktivität zu finden.
+            dummy_marking = self.init_marking
+        else:
+            if case_id not in self.case_markings:
+                self.initialize_case(case_id)
+            dummy_marking = self.case_markings[case_id]
 
-        current_marking = self.case_markings[case_id]
-        possible_next = []
+        possible_next = set()
+        
+        # Queue für die Breitensuche (BFS) durch unsichtbare Transitionen
+        queue = [dummy_marking]
+        visited = []
 
-        for transition in self.net.transitions:
-            if transition.label is not None:
-                if is_enabled(transition,self.net, current_marking):
-                    possible_next.append(transition.label)
-        return possible_next
+        while queue:
+            marking = queue.pop(0)
+            if marking in visited:
+                continue
+            visited.append(marking)
+
+            for transition in self.net.transitions:
+                if is_enabled(transition, self.net, marking):
+                    if transition.label is not None:
+                        # Echte Aktivität gefunden!
+                        possible_next.add(transition.label)
+                    else:
+                        # Unsichtbare Transition (z.B. Gateway) gefunden -> abfeuern und weitersuchen
+                        new_marking = execute(transition, self.net, marking)
+                        if new_marking not in visited:
+                            queue.append(new_marking)
+
+        return list(possible_next)
     
     def fire_activity(self, activity_name, case_id) -> bool:
         if case_id not in self.case_markings:
             self.initialize_case(case_id)
 
-        current_marking = self.case_markings[case_id]
-        for transition in self.net.transitions:
-            if transition.label == activity_name:
-                if is_enabled(transition,self.net, current_marking):
-                    new_marking = execute(transition,self.net, current_marking)
-                    self.case_markings[case_id] = new_marking
-                    return True
-                
+        queue = [self.case_markings[case_id]]
+        visited = []
+        while queue:
+            marking = queue.pop(0)
+            if marking in visited:
+                continue
+            visited.append(marking)
+            for transition in self.net.transitions:
+                if is_enabled(transition, self.net, marking):
+                    if transition.label == activity_name:
+                        self.case_markings[case_id] = execute(transition, self.net, marking)
+                        return True
+                    elif transition.label is None:
+                        new_marking = execute(transition, self.net, marking)
+                        if new_marking not in visited:
+                            queue.append(new_marking)
         return False

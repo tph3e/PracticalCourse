@@ -150,6 +150,8 @@ class Engine:
             unallocated_events =[]
             while self.waiting_processes:
                 event = heapq.heappop(self.waiting_processes)
+                event_time = event.time
+                event.time = self.simulation_time
                 if(self.resourceEngine.allocateResource(event)):
 
                     event.update({"EventID": self.event_counter,"lifecycle:transition": EventType.ACTIVITY_RESUME, "time:timestamp": self.simulation_time})
@@ -158,16 +160,18 @@ class Engine:
                     self.push_event(endTimeActivity, EventType.ACTIVITY_END, event.activity, event.getAttribs(), event.eventCase)
                     self.logger.log_event(event)
                 else:
+                    event.time=event_time
                     unallocated_events.append(event)
 
             for event in unallocated_events:
                 heapq.heappush(self.waiting_processes, event)
 
-    def run(self, start_time: datetime, end_time: datetime, format_type: str="csv") -> None:
+    def run(self, start_time: datetime, end_time: datetime, format_type=["csv", "xes"]) -> None:
         event_counter = 0
 
         self.push_event(start_time,EventType.CASE_ARRIVAL,"", self.sample_case_data(), Case(self.case_counter))
         self.case_counter+=1
+
         while self.event_queue:
             event = self.pop_event()
             self.simulation_time= event.time
@@ -200,6 +204,7 @@ class Engine:
                     event.eventType = EventType.ACTIVITY_SUSPEND
                     heapq.heappush(self.waiting_processes, event)
             elif event.eventType == EventType.ACTIVITY_END:
+                self.bpmnEngine.fire_activity(event.activity, event.eventCase.caseId)
                 self.resourceEngine.releaseResource(event)
                 posNextAcitivites = self.bpmnEngine.getPossibleNextActivities(event.activity, case_id=event.eventCase.caseId)
                 newActivities = self.branchingEngine.getNextActivities(event,posNextAcitivites)
@@ -220,11 +225,11 @@ class Engine:
                 self.check_waiting_processes()
             
             self.logger.log_event(event)
-        if format_type=="csv":
+        if "csv" in format_type:
             self.logger.to_csv()
-        if format_type=="xes":
+        if "xes" in format_type:
             self.logger.to_xes()
 
 if __name__ == "__main__":
     simulation_engine = Engine()
-    simulation_engine.run(datetime(2000,1,3,9,0), datetime(2000,1,10))
+    simulation_engine.run(datetime(2000,1,3,9,0), datetime(2000,1,30), "xes")
