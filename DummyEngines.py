@@ -37,7 +37,7 @@ class BPMNEngine:
     def getStartActivity(self, data):
         return "activity1"
     
-    def getPossibleNextActivities(self, activity)-> list:
+    def getPossibleNextActivities(self, activity, caseId=None)-> list:
         if activity=="activity1":
             return ["activity2"]
         elif activity== "activity2":

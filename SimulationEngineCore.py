@@ -7,7 +7,7 @@ import pm4py
 import random
 import os
 import sys
-from DummyEngines import BranchingEngine
+from joao.src.branching.CompositeBranchingEngine import CompositeBranchingEngine as BranchingEngine
 from arrival_engine import ArrivalEngine
 from BPMN_engine import BPMNEngine
 from resources import ResourceEngine
@@ -28,52 +28,53 @@ class EventLogger:
     def __init__(self):
         self.records: List[Event] =[]
 
-    def log_event(self, event) -> None:
-        self.records.append(event)
-
-    def to_csv(self, filepath=PATH_LOG+".csv") -> None:
-
-        if not self.records:
-            return
-        
-        df = pd.DataFrame([record.getAttribs() for record in self.records])
-        df.to_csv(filepath, index=False, encoding="utf-8")
-
-    def to_xes(self, filepath=PATH_LOG+".xes") -> None:
-
-        if not self.records:
-            return
-
-        df = pd.DataFrame([record.getAttribs() for record in self.records])
-        pm4py.write_xes(df, filepath)
-
-    def get_log(self) -> pd.DataFrame:
+    def _to_dataframe(self) -> pd.DataFrame:
         if not self.records:
             return pd.DataFrame()
         return pd.DataFrame([record.getAttribs() for record in self.records])
 
-class Engine:
-    
-    simulation_time: object
+    def log_event(self, event) -> None:
+        self.records.append(event)
 
-    def __init__(self, dataPath="data/logData.xes", seed=1):
+    def to_csv(self, filepath=PATH_LOG+".csv") -> None:
+        df = self._to_dataframe()
+        if not df.empty:
+            df.to_csv(filepath, index=False, encoding="utf-8")
+
+    def to_xes(self, filepath=PATH_LOG+".xes") -> None:
+        df = self._to_dataframe()
+        if not df.empty:
+            pm4py.write_xes(df, filepath)
+
+    def get_log(self) -> pd.DataFrame:
+        return self._to_dataframe()
+
+class Engine:
+
+    def __init__(self, dataPath: str="data/logData.xes", seed: int=1)-> None:
         self.event_counter: int = 0
         self.case_counter: int = 0
         self.event_queue: List[Event] = []
         self.cases: List[Case] = []
         self.waiting_processes: List[Event] = []
+        self.simulation_time: Optional[datetime] = None
 
         log = pm4py.read_xes(dataPath, variant="r4pm")
 
         self.logger = EventLogger()
-
         self.arrivalEngine = ArrivalEngine(log, seed)
         self.bpmnEngine = BPMNEngine()
-        self.resourseEngine = ResourceEngine(log, seed)
+        self.resourceEngine = ResourceEngine(log, seed)
         self.branchingEngine = BranchingEngine()
         self.processTimeEngine = ProcessTimeEngine(log, seed)
+
+        self.freq: pd.DataFrame = pd.DataFrame()
+        self.amount_dists: Dict[Tuple[str, str], Tuple[float, float, float]] = {}
+        self.global_params: Tuple[float, float, float] = (0.0, 0.0, 0.0)
         
         self.train(log)
+
+        random.seed(seed)
 
     def train(self, log: pd.DataFrame)-> None:
         #The distribution of requestedAmount is fitted for every pair of case:ApplicationType and case:LoanGoal seperatly
@@ -113,7 +114,7 @@ class Engine:
             case = Case(self.case_counter)
             self.case_counter+=1
         
-        if not data is None:
+        if data is not None:
             data.update({"time:timestamp": time_point, "lifecycle:transition": event_type, "concept:name": activity, "EventID": self.event_counter})
         
         event = Event(event_type, activity, time_point, self.event_counter,case, data)
@@ -133,11 +134,8 @@ class Engine:
         loan_goal = row["case:LoanGoal"]
         lookup_key = (app_type, loan_goal)
 
-        if lookup_key in self.amount_dists:
-            #sample the requestedAmount after looking up its distribution for this pair of applicationType and loanGoal
-            shape, loc, scale = self.amount_dists.get(lookup_key, self.global_params)
-        else:
-            shape, loc, scale = self.global_params
+        #sample the requestedAmount after looking up its distribution for this pair of applicationType and loanGoal
+        shape, loc, scale = self.amount_dists.get(lookup_key, self.global_params)
         requested_amount = stats.lognorm.rvs(shape, loc, scale)
 
         return {
@@ -147,12 +145,12 @@ class Engine:
         "EventOrigin": "Application"
         }
 
-    
+
     def check_waiting_processes(self) -> None:
             unallocated_events =[]
             while self.waiting_processes:
                 event = heapq.heappop(self.waiting_processes)
-                if(self.resourseEngine.allocateResource(event)):
+                if(self.resourceEngine.allocateResource(event)):
 
                     event.update({"EventID": self.event_counter,"lifecycle:transition": EventType.ACTIVITY_RESUME, "time:timestamp": self.simulation_time})
                     self.event_counter += 1
@@ -165,7 +163,7 @@ class Engine:
             for event in unallocated_events:
                 heapq.heappush(self.waiting_processes, event)
 
-    def run(self, start_time: datetime, end_time: datetime, csvOrxes="csv") -> None:
+    def run(self, start_time: datetime, end_time: datetime, format_type: str="csv") -> None:
         event_counter = 0
 
         self.push_event(start_time,EventType.CASE_ARRIVAL,"", self.sample_case_data(), Case(self.case_counter))
@@ -173,7 +171,6 @@ class Engine:
         while self.event_queue:
             event = self.pop_event()
             self.simulation_time= event.time
-            print(event.time)
             if self.simulation_time > end_time:
                 break
             if event.eventType == EventType.CASE_ARRIVAL:
@@ -182,6 +179,7 @@ class Engine:
 
                 #put event on top of event queue
                 self.push_event(event.time, EventType.ACTIVITY_START, firstActivity, data, event.eventCase)
+                self.bpmnEngine.initialize_case(event.eventCase)
 
                 newCase = Case(self.case_counter)
                 self.case_counter += 1
@@ -193,31 +191,40 @@ class Engine:
                 self.push_event(nextAttrivalTime, EventType.CASE_ARRIVAL,"", dict(), newCase)
                 continue
             
-
             if event.eventType == EventType.ACTIVITY_START:
-                validResource = self.resourseEngine.allocateResource(event)
+                validResource = self.resourceEngine.allocateResource(event)
                 if(validResource):
                     endTimeActivity = self.processTimeEngine.getProcessingTime(event)+event.time
                     self.push_event(endTimeActivity, EventType.ACTIVITY_END, event.activity, event.getAttribs(), event.eventCase)
                 else:
                     event.eventType = EventType.ACTIVITY_SUSPEND
                     heapq.heappush(self.waiting_processes, event)
-            if event.eventType == EventType.ACTIVITY_END:
-                self.bpmnEngine.fire_activity(event.activity, event.eventCase.caseId)
-                self.resourseEngine.releaseResource(event)
-                newActivity = self.branchingEngine.getNextActivities(event,self.bpmnEngine.getPossibleNextActivities(event.activity))
-                if newActivity ==[]:
-                    time = self.processTimeEngine.getWaitingTime(event, newActivity)
-                    self.push_event(time+event.time, EventType.ACTIVITY_START, newActivity, event.getAttribs(), event.eventCase)
+            elif event.eventType == EventType.ACTIVITY_END:
+                self.resourceEngine.releaseResource(event)
+                posNextAcitivites = self.bpmnEngine.getPossibleNextActivities(event.activity, case_id=event.eventCase.caseId)
+                newActivities = self.branchingEngine.getNextActivities(event,posNextAcitivites)
+                if not(newActivities is None or newActivities==[]):
+                    if isinstance(newActivities, str):
+                        newActivities = [newActivities]
+                    for newActivity in newActivities:
+                        if newActivity is None:
+                            continue
+                        time = self.processTimeEngine.getWaitingTime(event, newActivity)
+                        self.push_event(
+                            time + event.time,
+                            EventType.ACTIVITY_START,
+                            newActivity,
+                            event.getAttribs(),
+                            event.eventCase
+                        )
                 self.check_waiting_processes()
             
             self.logger.log_event(event)
-            self.check_waiting_processes()# to be checked
-        if csvOrxes=="csv":
+        if format_type=="csv":
             self.logger.to_csv()
-        if csvOrxes=="xes":
+        if format_type=="xes":
             self.logger.to_xes()
 
 if __name__ == "__main__":
     simulation_engine = Engine()
-    simulation_engine.run(datetime(2000,1,1), datetime(2000,1,3))
+    simulation_engine.run(datetime(2000,1,3,9,0), datetime(2000,1,10))

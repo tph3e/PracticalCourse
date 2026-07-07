@@ -1,50 +1,43 @@
-# EngineCore Anpassungen für die ResourceEngine 
+# BPMN Engine Problem
 
+BPMN engine prüft nicht die unsichtbaren Transitionen.
+Daher kann nach der 1. Transition nach A_Submitted keine weitere Transition ausgelöst werden.
+Hier eine Überlegung für getPossibleNextActivities.
+Dies hat auch Auswirkungen auf fire_activity.
 
-## 1. Sim-Fenster ohne Arbeitszeit 
-Es ist kein Bug im ResourceEngine, sondern das gewählte Zeitfenster.
-
-
-**Aktuell (Zeile 223):**
 ```python
-    simulation_engine.run(datetime(2000,1,1), datetime(2000,1,3))
-```
+def getPossibleNextActivities(self, current_activity, case_id=None) -> list:
+        if case_id is None:
+            # Falls kein case_id übergeben wird, initialisieren wir Dummy-Markierungen, 
+            # um die Startaktivität zu finden.
+            dummy_marking = self.init_marking
+        else:
+            if case_id not in self.case_markings:
+                self.initialize_case(case_id)
+            dummy_marking = self.case_markings[case_id]
 
+        possible_next = set()
+        
+        # Queue für die Breitensuche (BFS) durch unsichtbare Transitionen
+        queue = [dummy_marking]
+        visited = []
 
-2000-01-01 ist ein Samstag, 2000-01-03 00:00 ein Montag Mitternacht. Das
-Fenster enthält also keine einzige Arbeitsstunde. 
+        while queue:
+            marking = queue.pop(0)
+            if marking in visited:
+                continue
+            visited.append(marking)
 
+            for transition in self.net.transitions:
+                if is_enabled(transition, self.net, marking):
+                    if transition.label is not None:
+                        # Echte Aktivität gefunden!
+                        possible_next.add(transition.label)
+                    else:
+                        # Unsichtbare Transition (z.B. Gateway) gefunden -> abfeuern und weitersuchen
+                        new_marking = execute(transition, self.net, marking)
+                        if new_marking not in visited:
+                            queue.append(new_marking)
 
-**Vorschlag:** ein Fenster mit Werktag-Arbeitszeit wählen, z.B.
-```python
-    simulation_engine.run(datetime(2000,1,3,9,0), datetime(2000,1,31))
-```
-
-
-
-## 2. Branching: Folgeaktivitäten-Schleife invertiert 
-Taucht erst auf, sobald Punkt 1 behoben ist 
-
-getNextActivities() liefert eine Liste. Der aktuelle Code weist die ganze
-Liste newActivity zu und prüft == [] 
-
-
-**Aktuell (Zeile 208):**
-```python
-            newActivity = self.branchingEngine.getNextActivities(event,self.bpmnEngine.getPossibleNextActivities(event.activity))
-            if newActivity ==[]:
-                time = self.processTimeEngine.getWaitingTime(event, newActivity)
-                self.push_event(time+event.time, EventType.ACTIVITY_START, newActivity, event.getAttribs(), event.eventCase)
-```
-
-
-Folge: bei vorhandenen Folgeaktivitäten passiert nichts (Fall stoppt nach der ersten
-Aktivität). Bei Fallende wird ein Müll-Event mit Aktivität [] gepusht.
-
-
-**Vorschlag:** über die Liste iterieren und nur bei nicht-leerer Liste pushen.
-```python
-            for na in self.branchingEngine.getNextActivities(event, self.bpmnEngine.getPossibleNextActivities(event.activity)):
-                time = self.processTimeEngine.getWaitingTime(event, na)
-                self.push_event(time+event.time, EventType.ACTIVITY_START, na, event.getAttribs(), event.eventCase)
+        return list(possible_next)
 ```
