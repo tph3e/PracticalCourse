@@ -108,7 +108,7 @@ class Engine:
     resourseEngine: ResourceEngine
     processTimeEngine: ProcessTimeEngine
 
-    def __init__(self, dataPath="../PracticalCourse/data/logData.xes", seed=1):
+    def __init__(self, dataPath="../PracticalCourse/data/BPI Challenge 2017.xes", seed=1):
         self.eventCounter = 0
         self.caseCounter = 0
         self.eventQueue = []

@@ -265,7 +265,7 @@ def main():
     output_dir = PROJECT_ROOT / "results"
     output_dir.mkdir(exist_ok=True)
 
-    log_path = PROJECT_ROOT / "../PracticalCourse/data/logData.xes"
+    log_path = PROJECT_ROOT / "../PracticalCourse/data/BPI Challenge 2017.xes"
     log = load_log(str(log_path))
 
     train_log, test_log = temporal_train_test_split_by_case(

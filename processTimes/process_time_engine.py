@@ -43,7 +43,7 @@ class ProcessTimeEngine:
         else:
             #if the log is empty (no propper log was given), the log is manually loaded
             if(log.empty):
-                log = pm4py.convert_to_dataframe(pm4py.read_xes('data/logData.xes', variant="r4pm"))
+                log = pm4py.convert_to_dataframe(pm4py.read_xes('data/BPI Challenge 2017.xes', variant="r4pm"))
             
             event_times = self.format_data(log)
             self.train_basic(event_times)

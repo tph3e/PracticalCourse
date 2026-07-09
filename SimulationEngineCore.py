@@ -51,7 +51,7 @@ class EventLogger:
 
 class Engine:
 
-    def __init__(self, dataPath: str="data/logData.xes", seed: int=1)-> None:
+    def __init__(self, dataPath: str="data/BPI Challenge 2017.xes", seed: int=1)-> None:
         self.event_counter: int = 0
         self.case_counter: int = 0
         self.event_queue: List[Event] = []
