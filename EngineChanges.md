@@ -13,6 +13,17 @@ Verifiziert: mit den Fixes liefert der Sim cycle_time 0,58 Tage, occupation 0,25
 Trainingsziel ist in Sekunden (Zeile 198), Advanced-Pfad liest korrekt timedelta(seconds=...), nur
 hier wird der Wert als timedelta(x)=Tage gelesen. 
 
+__init__ aktuell (Zeile 31):
+```python
+        self.rndm_state = seed
+```
+
+__init__ Vorschlag:
+```python
+        self.rndm_state = seed
+        self.rng = np.random.default_rng(seed)
+```
+
 Aktuell:
 ```python
     def sample_distrib(self, distrib, param) -> timedelta:
