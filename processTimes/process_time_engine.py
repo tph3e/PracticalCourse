@@ -29,6 +29,7 @@ class ProcessTimeEngine:
     def __init__(self, log: pd.DataFrame=pd.DataFrame(), seed=1):
 
         self.rndm_state = seed
+        self.rng = np.random.default_rng(seed)
         #if the models are already trained they do not have to be retrained
         if os.path.exists(PATH_MODELS):
             models = joblib.load(PATH_MODELS)
@@ -180,7 +181,7 @@ class ProcessTimeEngine:
                 elif event == "resume":
                     active_start = log_entry["time:timestamp"]
 
-                    total_waiting_time = activity_waiting - log_entry["time:timestamp"]
+                    total_waiting_time = log_entry["time:timestamp"] - activity_waiting
                 elif event == "suspend":
                     if active_start is not None:
                         total_active_time += (log_entry["time:timestamp"] - active_start)
@@ -195,8 +196,8 @@ class ProcessTimeEngine:
                     event_times.append({
                         "case:concept:name": case,
                         "concept:name": activity,
-                        "processing_time": total_active_time.seconds,
-                        "waiting_time": total_waiting_time.seconds,
+                        "processing_time": total_active_time.total_seconds(),
+                        "waiting_time": total_waiting_time.total_seconds(),
                         "org:resource": log_entry["org:resource"],
                         "case:RequestedAmount": requestedAmount,
                         "case:ApplicationType": applicationType,
@@ -207,11 +208,11 @@ class ProcessTimeEngine:
     
     def sample_distrib(self, distrib, param) -> timedelta:
         if distrib == "poisson":
-            return timedelta(stats.poisson.rvs(mu = param["lambda"], random_state= self.rndm_state))
+            return timedelta(seconds=stats.poisson.rvs(mu = param["lambda"], random_state=self.rng))
         if distrib == "gamma":
-            return timedelta(stats.gamma.rvs(param["shape"], loc=0, scale=param["scale"], random_state= self.rndm_state))
+            return timedelta(seconds=stats.gamma.rvs(param["shape"], loc=0, scale=param["scale"], random_state=self.rng))
         if distrib == "lognorm":
-            return timedelta(stats.lognorm.rvs(param["shape"], loc=0, scale=param["scale"], random_state= self.rndm_state))
+            return timedelta(seconds=stats.lognorm.rvs(param["shape"], loc=0, scale=param["scale"], random_state=self.rng))
         return timedelta(0)
     
     def getProcessingTime(self, event: Event, activity=None) -> timedelta:
@@ -226,13 +227,13 @@ class ProcessTimeEngine:
         return self.sampleTime_advanced(event, "waiting")       
 
     def sampleTime_basic(self, activity, resource="", kind="processing") -> timedelta:
-        key = f"{activity}_{resource}_{kind}"
-        if key in self.models_basic:
-            if(np.random.rand() < self.models_basic[key]["0-proportion"]):
-                return timedelta(minutes=0)
-            return self.sample_distrib(self.models_basic[key]["distribution"], self.models_basic[key]["parameters"])
-        else:
+        model = self.models_basic.get(f"{activity}_{resource}_{kind}") \
+            or self.fallback_models_basic.get(f"{activity}_{kind}")
+        if model is None:
             return timedelta(0)
+        if np.random.rand() < model["0-proportion"]:
+            return timedelta(0)
+        return self.sample_distrib(model["distribution"], model["parameters"])
     
     def sampleTime_advanced(self, event: Event, kind="processing") -> timedelta:        
         key = f"{event.activity}_{event.resource}_{kind}"
