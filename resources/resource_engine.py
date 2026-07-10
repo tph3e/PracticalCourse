@@ -17,6 +17,11 @@ class ResourceEngine:
         # activities allocated per resource (load signal for Part 2)
         self.load: dict[str, float] = {}
 
+    def set_allocation(self, strategy) -> None:
+        # Swap the 1.8 allocation strategy (Part 2: heuristics, batch, RL policy).
+        # The core keeps calling allocateResource unchanged, only pick() differs.
+        self.allocation = strategy
+
     def allocateResource(self, event) -> bool:
         # Try to assign a resource to "event". Returns True on success.
 

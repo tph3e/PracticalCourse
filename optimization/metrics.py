@@ -29,7 +29,13 @@ def activity_durations(log_df: pd.DataFrame) -> pd.DataFrame:
     df = log_df[[CASE, ACT, RES, TS, LC]].copy()
     df[TS] = pd.to_datetime(df[TS], utc=True)
 
-    s = df[df[LC] == "start"].sort_values(TS).copy()
+    # Work on an activity begins at a "start" event (direct allocation) or a
+    # "resume" event (allocation succeeded after a suspend). In the simulator log a
+    # suspended activity emits suspend -> resume -> complete with no "start", so
+    # pairing only start<->complete would drop every resumed instance. The resource
+    # is busy from the work-begin to the complete, the suspend->resume gap is
+    # waiting, not busy.
+    s = df[df[LC].isin(["start", "resume"])].sort_values(TS).copy()
     c = df[df[LC] == "complete"].sort_values(TS).copy()
     s["occ"] = s.groupby([CASE, ACT]).cumcount()
     c["occ"] = c.groupby([CASE, ACT]).cumcount()
@@ -175,3 +181,21 @@ def compute_all(log_df: pd.DataFrame, availability=None, window_s: float | None 
         "occupation": average_resource_occupation(log_df, availability, window_s),
         "fairness": resource_fairness(log_df, availability=availability, window_s=window_s),
     }
+
+
+def compare_on_sim(sim_logs: dict, availability=None) -> pd.DataFrame:
+    # Cross-method comparison on the integrated simulator output (task F bridge).
+    # sim_logs: {method_name: simulator_output_log_df}. Runs the same compute_all
+    # on each per-method log, one table row per method.
+    rows = []
+    for method, slog in sim_logs.items():
+        m = compute_all(slog, availability=availability)
+        rows.append([
+            method,
+            round(m["cycle_time"]["mean_days"], 1),
+            round(m["occupation"]["mean"], 3),
+            round(m["fairness"]["gini"], 3),
+        ])
+    return pd.DataFrame(
+        rows, columns=["method", "cycle_time_days", "occupation", "fairness_gini"]
+    )

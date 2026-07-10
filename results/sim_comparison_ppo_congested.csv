@@ -1,0 +1,6 @@
+method,cycle_time_days,occupation,fairness_gini
+random,0.3,0.567,0.607
+shortest-queue,0.3,0.783,0.546
+most-experienced,0.3,0.553,0.595
+RL (REINFORCE),0.3,0.518,0.553
+PPO (MaskablePPO),0.3,0.605,0.637

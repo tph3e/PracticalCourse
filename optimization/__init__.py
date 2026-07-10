@@ -5,6 +5,7 @@ from .metrics import (
     average_resource_occupation,
     resource_fairness,
     compute_all,
+    compare_on_sim,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "average_resource_occupation",
     "resource_fairness",
     "compute_all",
+    "compare_on_sim",
 ]

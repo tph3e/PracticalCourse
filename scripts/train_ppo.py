@@ -20,7 +20,9 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.utils import get_action_masks
 
 from resources.log_loader import load_slim_log
-from optimization.environment import build_env_config
+from optimization.environment import (
+    build_env_config, sample_interarrival, sample_processing, sample_waiting,
+)
 from optimization.metrics import gini
 
 
@@ -29,12 +31,17 @@ W_FAIR = 5.0  # weight balancing the (telescoped) fairness objective vs. the CT 
 
 class GymAllocationEnv(gym.Env):
     def __init__(self, cfg, max_steps=600, mean_interarrival_s=1000.0,  # calibrated to real ~1002 s
-                 min_case_len=8, max_case_len=21, max_postpone=3, ct_scale_s=3600.0, seed=0):
+                 min_case_len=8, max_case_len=21, max_postpone=3, ct_scale_s=3600.0, seed=0,
+                 interarrival_scale=1.0):
         super().__init__()
         self.permitted = {a: list(rs) for a, rs in cfg["permitted"].items()}
         self.calendars = cfg["calendars"]
         self.skill = cfg["skill"]
         self.base_proc_s = cfg["base_proc_s"]
+        self.arrival = cfg.get("arrival")          # 2B
+        self.proc = cfg.get("proc")                # 2B
+        self.case_pool = cfg.get("case_pool")      # 2A
+        self.interarrival_scale = interarrival_scale
         self.activities = list(cfg["activity_mix"].keys())
         self.act_index = {a: i for i, a in enumerate(self.activities)}
         self.activity_p = np.array([cfg["activity_mix"][a] for a in self.activities], float)
@@ -60,6 +67,7 @@ class GymAllocationEnv(gym.Env):
         self.rng = np.random.default_rng(self._seed if seed is None else seed)
         self.t = 0.0; self.step_i = 0; self._seq = 0
         self.evq = []; self.busy_until = {}; self.load = {r: 0.0 for r in self.resources}
+        self.alloc_count = {r: 0 for r in self.resources}   # (a) inference-side load signal (count)
         self.ready = deque(); self.cases = {}; self.case_counter = 0
         self.completed_cts = []
         self._push(0.0, "ARRIVAL", None)
@@ -83,23 +91,38 @@ class GymAllocationEnv(gym.Env):
         self.t = t
         if kind == "ARRIVAL":
             cid = self.case_counter; self.case_counter += 1
-            n = int(self.rng.integers(self.min_case_len, self.max_case_len + 1))
-            acts = [self.activities[i] for i in self.rng.choice(self.A, size=n, p=self.activity_p)]
+            if self.case_pool:                                  # 2A: valid BPMN sequence
+                acts = self.case_pool[int(self.rng.integers(len(self.case_pool)))]
+            else:
+                n = int(self.rng.integers(self.min_case_len, self.max_case_len + 1))
+                acts = [self.activities[i] for i in self.rng.choice(self.A, size=n, p=self.activity_p)]
             self.cases[cid] = {"acts": acts, "idx": 0, "start": t, "postpone": 0}
             self.ready.append(cid)
-            self._push(t + self.rng.exponential(self.mean_interarrival_s), "ARRIVAL", None)
+            gap = sample_interarrival(self.arrival, self.rng, t,
+                                      self.mean_interarrival_s, self.interarrival_scale)
+            self._push(t + gap, "ARRIVAL", None)
         elif kind == "COMPLETE":
             cid, r = payload
             case = self.cases.get(cid)
             if case is None:
                 return
+            completed_act = case["acts"][case["idx"]]
             case["idx"] += 1
             if case["idx"] >= len(case["acts"]):
                 ct = t - case["start"]; self.completed_cts.append(ct)
                 self._pending += 1.0 / (ct / self.ct_scale_s + 1.0)
                 del self.cases[cid]
             else:
-                case["postpone"] = 0; self.ready.append(cid)
+                case["postpone"] = 0
+                wait = sample_waiting(self.proc, completed_act, r)   # 2B
+                if wait > 0:
+                    self._push(t + wait, "READY", cid)
+                else:
+                    self.ready.append(cid)
+        elif kind == "READY":
+            cid = payload
+            if cid in self.cases:
+                self.ready.append(cid)
 
     def _current(self):
         for cid in list(self.ready):
@@ -124,11 +147,12 @@ class GymAllocationEnv(gym.Env):
         if self._cur is None:
             return obs
         cid, act, cands = self._cur
-        max_load = (max(self.load.values()) if self.load else 0.0) or 1.0
+        # (a) load feature = allocation count (matches ResourceEngine.load at inference)
+        max_count = (max(self.alloc_count.values()) if self.alloc_count else 0) or 1
         skill_a = self.skill.get(act, {})
         for r in self.resources:
             i = self.res_index[r]
-            obs[i] = self.load[r] / max_load
+            obs[i] = self.alloc_count[r] / max_count
             obs[self.R + i] = 1.0 if self._available_now(r) else 0.0
             obs[2 * self.R + i] = skill_a.get(r, 0.0)
         obs[3 * self.R + self.act_index[act]] = 1.0
@@ -161,10 +185,10 @@ class GymAllocationEnv(gym.Env):
                 done = self._cur is None
                 return self._obs(), self._pending, done, False, {}
         r = self.resources[action]
-        skill_val = self.skill.get(act, {}).get(r, 0.0)
-        proc = self.base_proc_s[act] * (1.0 - 0.3 * skill_val)
+        proc = sample_processing(self.proc, self.skill, self.base_proc_s, act, r)  # 2B
         gini_before = gini(self.load.values())
         self.busy_until[r] = self.t + proc; self.load[r] += proc
+        self.alloc_count[r] += 1                      # (a) count = inference-side load signal
         self.ready.remove(cid)
         self._push(self.t + proc, "COMPLETE", (cid, r))
         # faithful fairness shaping (potential-based on Gini) 
