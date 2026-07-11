@@ -1,0 +1,3 @@
+scenario,cycle_time_days,occupation,fairness_gini
+baseline (149 resources),0.28,0.155,0.765
+after removal (147 resources),0.3,0.131,0.799
