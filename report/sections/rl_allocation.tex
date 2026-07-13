@@ -1,0 +1,28 @@
+\subsection{Reinforcement-Learning Allocation Policy}\label{subsec:rl}
+\textit{(Aldo Patrone)}\quad
+The allocation policy is learned by modeling the problem as in Middelhuis et
+al.~\cite{middelhuis2025rl}: a case-based discrete-event environment, \emph{calibrated
+to the real log} (arrival rate, case length, activity sequences from the BPMN model and
+per-activity processing times matched to BPIC-17), where at each decision step the agent
+assigns a resource to a ready activity instance \emph{or postpones}. The reward encodes a
+disclosed, equally-weighted objective of \emph{cycle time and fairness}: a per-case
+inverse-cycle-time reward plus shaping on the Gini of resource loads. It was aligned to
+the objective but deliberately \emph{not} tuned to the evaluation score. The postpone
+action was found to destabilize training under a pure fairness penalty (it became a way
+to avoid assigning), so it carries a fixed cost.
+
+The variable action space is handled two ways: a from-scratch per-candidate-scoring
+policy (compact MLP, REINFORCE, pure \emph{numpy}) and the state-of-the-art
+\emph{MaskablePPO} over the masked resource set (sb3-contrib, isolated venv, 600k steps).
+So that a surrogate-trained policy behaves identically once deployed, the load feature
+uses the same quantity at training and inference, the running allocation count that the
+live \emph{ResourceEngine} exposes. A more faithful variant then trains the policy
+\emph{directly on the integrated simulator}: the recording strategy drives it during a
+normal forward run, so no environment inversion is needed. A PPO-style update (value
+critic, generalized advantage estimation, clipped objective) then refines it,
+warm-started from the surrogate policy. Every variant plugs into the swappable
+\emph{AllocationStrategy.pick(candidates, context)} interface (a postpone returns
+\emph{None}). The REINFORCE policy serializes to JSON, so its deployment needs no
+machine-learning dependency at runtime. Training hyperparameters and the learning curve
+are in the Appendix (Table~\ref{tab:rl_hparams}, Fig.~\ref{fig:rl_curve}). The policy is
+evaluated against the other methods in Sec.~\ref{ssub:rl-eval}.

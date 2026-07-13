@@ -1,0 +1,49 @@
+\subsubsection{Reinforcement-Learning Policy}\label{ssub:rl-eval}
+\textit{(Aldo Patrone)}\quad
+The RL policy (Sec.~\ref{subsec:rl}) is evaluated at two levels. A fast controlled
+case-based environment, calibrated to BPIC-17 (arrival rate and case length matched),
+serves method development and is illustrated in the Appendix
+(Fig.~\ref{fig:alloc_cmp_plot}): the learned agents trade cycle time against fairness,
+yet the simple \emph{shortest-queue} heuristic already matches them, since greedy
+load-balancing serves fairness directly. The robust verdict comes from the integrated
+simulator, where every method runs through the identical event engine and is scored by
+\emph{compute\_all} (Sec.~\ref{ssub:metrics}) over five random seeds under a congested
+load (Table~\ref{tab:alloc_sim}). No deep-learning variant beats shortest-queue: the
+fairness Gini is a statistical tie across all methods (about $0.58 \pm 0.02$), while
+shortest-queue clearly leads resource occupation ($0.77$ against roughly $0.54$ to
+$0.65$). Average cycle time was $0.3$ days for every method, so allocation barely moves
+it and it is left out of the table.
+
+This negative result is deliberately robust rather than an artifact of weak training.
+The obvious counter-explanations were each closed: the training and inference load
+features were aligned to the same quantity, the fairness signal was made scale-invariant
+so it does not vanish over long episodes, the policy was trained directly on the
+integrated simulator (sim-in-the-loop), the state-of-the-art \emph{MaskablePPO} was
+included and a PPO learner was trained on the simulator itself, warm-started from the
+surrogate policy, as in Middelhuis et al.~\cite{middelhuis2025rl}. None surpasses the
+heuristic. The explanation is structural: shortest-queue is near-optimal for the
+load-Gini fairness metric, while cycle time is insensitive to allocation in this process,
+so the added complexity of a learned policy is not justified for this objective. The
+full cross-method comparison of all group methods is synthesized in
+Sec.~\ref{ssub:cross-eval}.
+
+\begin{table}[!h]
+    \caption{Allocation methods on the integrated simulator, congested load, mean over
+    five seeds with standard deviation (lower Gini is fairer). Cycle time was $0.3$ days
+    for all methods.}
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \footnotesize
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Method} & \textbf{Fairness Gini} & \textbf{Occupation} \\
+        \midrule
+        Shortest-queue      & $0.582 \pm 0.024$ & $\mathbf{0.772 \pm 0.058}$ \\
+        Random              & $0.581 \pm 0.017$ & $0.647 \pm 0.096$ \\
+        Most-experienced    & $0.614 \pm 0.010$ & $0.540 \pm 0.037$ \\
+        PPO (MaskablePPO)   & $0.576 \pm 0.015$ & $0.567 \pm 0.049$ \\
+        PPO on simulator    & $0.584 \pm 0.023$ & $0.538 \pm 0.046$ \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:alloc_sim}
+\end{table}
