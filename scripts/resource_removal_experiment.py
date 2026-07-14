@@ -10,6 +10,8 @@ import pandas as pd
 from SimulationEngineCore import Engine
 from optimization.metrics import compute_all
 
+
+#This file is for task 1.2)Evaluation, answering the question from slide 23.
 SEED = 1
 START = datetime(2000, 1, 3, 9, 0)   # matches compare_on_sim.py's window
 END = datetime(2000, 1, 10, 0, 0)

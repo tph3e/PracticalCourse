@@ -54,14 +54,36 @@ documents our use of AI tools.
 \subsection{Simulation Engine Core}
 \textit{(Thomas, 1.1)}\quad
 
-\subsection{Case Arrivals}
-\textit{(Cam, 1.2)}\quad
+\subsection{Case Arrivals} \textit{(Can Güleç, 1.2)}
+The case arrival engine handles when new process instances show up during the simulation. Instead of just sampling arrival times from one static distribution (the simple approach), we use dynamic arrival rates that change depending on the time of day and day of the week. 
+
+During training, the engine analyzes the event log to determine a base arrival frequency. It gets the first timestamp of every unique process instance, sorts them chronologically, and calculates the time gaps between case starts that come after each other. The base rate, which we feed into an exponential distribution, $X_0 \in \mathbb{R}^+$ is simply the average of these inter-arrival gaps:
+$$X_0 = \frac{1}{N-1} \sum_{i=2}^{N} (t_i - t_{i-1})$$
+where $t_i$ is the start timestamp of case $i$, and $N$ is the total number of cases. Training on the BPIC-17 log gives us a baseline of $X_0 \approx 1002.23\,\text{s}$.
+
+Then, during simulation, this baseline rate gets adjusted using multipliers tied to the current weekday and hour. Let $w(t) \in \{0, \dots, 6\}$ represent the day of the week and $h(t) \in \{0, \dots, 23\}$ the hour for a given simulation timestamp $t$. The resulting dynamic scale parameter $S(t)$ is:
+$$S(t) = \frac{X_0}{M_{\text{day}}(w(t)) \cdot M_{\text{hour}}(h(t))}$$
+
+As shown in Figure \ref{fig:availability}, the modifiers peak during standard weekday business hours, leading to faster case arrivals (shorter gaps between instances). In the evenings and on weekends, the modifiers drop, slowing arrivals down (longer gaps between instances). The actual waiting time $\Delta t$ until the next case arrives is then sampled from an exponential distribution using this adjusted rate:
+$$\Delta t \sim \text{Exponential}\left(\lambda = \frac{1}{S(t)}\right)$$
+
+This design was inspired by Kirchdorfer et al. (2025) \cite{kirchdorfer2025divide}, who make a strong case for preserving intraday and weekday dynamics in order to avoid distorting business process simulations. We didn't go as far as their full AT-KDE method, which uses clustering and kernel density estimation to automatically learn arrival patterns from historical data. Instead, we went with a simpler, more hands-on approach, manually defining multipliers that still capture the key weekday and time of the day effects.
 
 \subsection{Processing Times}
 \textit{(Thomas, 1.3)}\quad
 
 \subsection{Process Model}
-\textit{(Cam, 1.4)}\quad
+\textit{(Can Güleç, 1.4)}\quad
+The process model engine (BPMNEngine in code) enforces the control flow of each simulated process instance. The engine we implemented will load a BPMN file using PM4Py and convert this file to a Petri net. This way, our engine supports the use of any type of process model. In our example, the process model is loaded from \texttt{models/v4\_replay.bpmn}, which represents the BPI Challenge 2017 loan application process The final Petri net, with its initial and final markings, represents the executable form of the process model. Each simulated case has its own Petri net marking. Thus, multiple process instances can progress independently. 
+
+\subsubsection{Tracking Tokens and Firing Transitions}
+During simulation, the engine uses the Petri net semantics provided by PM4Py to discover enabled transitions. Each case's progress through the process is tracked independently. The engine keeps a simple dictionary mapping each \textbf{case\_id} to its own current marking. When the scheduler asks the engine what a case can do next (via \textbf{getPossibleNextActivities}), the engine checks the standard Petri net firing rule against that case's current marking: a transition $t \in T$ is enabled only if every one of its input places has at least one token:
+$$\forall p \in \bullet t: M(p) \geq 1$$
+If a transition is enabled, the engine can fire it by moving tokens out of the input places and into the output places to produce the new marking:
+$$M' = (M - \bullet t) + t\bullet$$
+
+\subsubsection{Handling Silent Transitions with BFS}
+ Invisible transitions can be created during the BPMN to Petri net conversion because real-world process models (like BPIC-17) are full of routing logic. The parallel splits, XOR gateways, loops, etc. show up as unlabeled transitions in the Petri net. If the engine only looked at visible activities, it would get stuck behind these silent gateways and think the process had deadlocked, even though it hadn't. To overcome this problem, we added a breadth first search step inside the state-checking logic. The transitions are automatically traversed with it until a visible activity is found. Therefore, the engine can identify all possible executable activities. Once an activity is executed, the transition corresponding to the activity is fired and the case marking is updated. Since the engine updates the case marking after every activity is executed, every simulated case is guaranteed to follow the control flow defined by the BPMN model.
 
 \subsection{Branching Decisions}
 \textit{(Joao, 1.5)}\quad
@@ -74,7 +96,7 @@ documents our use of AI tools.
 \textit{(Thomas)}\quad
 
 \subsubsection{Case Arrivals}
-\textit{(Cam)}\quad
+\textit{(Can Güleç)}\quad
 
 \subsubsection{Processing Times}
 \textit{(Thomas)}\quad
@@ -111,7 +133,12 @@ documents our use of AI tools.
 \textit{(Joao, A)}\quad
 
 \subsubsection{Batch Allocation}
-\textit{(Cam, B)}\quad
+\textit{(Can Güleç)}\quad
+In the batch allocation engine, a threshold-based batching strategy was implemented for resource allocation. We place the new created tasks in an internal buffer until a predetermined number of tasks (the batch size) (in our implementation:$$k_{\text{limit}} = 5$$) is reached, instead of allocating resources to tasks immediately upon creation. Once there are enough tasks in the buffer, the engine attempts to allocate resources to the entire batch of tasks.
+
+During batch allocation, each task is allocated to the first available resource capable of performing the required activity. Once allocated, a given resource cannot be allocated again within the same batch. This ensures that simultaneous allocations to the same resource are avoided. If a task cannot be allocated (because there are no suitable resources available), it remains in the buffer and will be reconsidered during the next allocation cycle.
+
+To ensure that no tasks remain unprocessed at the end of the simulation, there is a "flush" function included in the engine that forcefully allocates all remaining buffered tasks regardless of whether or not the batch size has been met.
 
 \subsubsection{Kunkler Formalization}
 \textit{(Thomas, C)}\quad
@@ -125,7 +152,41 @@ documents our use of AI tools.
 \textit{(Joao, F)}\quad
 
 \subsubsection{Slide-23 Question}
-\textit{(Cam, H)}\quad
+\textit{(Can Güleç, Slide 23 Scenario Analysis)}\quad
+
+\subsubsection{Resource Selection}
+The question we selected to answer is the first one on slide 23. The management wants us to fire two employees. To address this request, we ranked all 149 resources by their occupation (busy time divided by available time), using the resource availability calendars learned in Task 1.6. Before selecting the least utilized resources, we excluded two categories:
+\begin{itemize}
+    \item {User\_1} was excluded because it is not a valid employee. Although its occupation is nearly zero, it generated over 148000 log events consisting almost entirely of automatic system activities and queue offers.
+    \item {Near-empty resources} Users \_147, \_148 and \_149 were also not counted since they appear only 1-4 times in the log, making their removal meaningless as they are already barely present in the data.
+\end{itemize}
+
+From the remaining active employees, we selected the two resources with the lowest occupation. It was verified that their removal would not leave any activity without sufficient qualified resources, using the authorization data from Task 1.7.
+The resources we selected to remove are
+\begin{itemize}
+    \item \textbf{User\_76:} 2.3\% occupation, 1{,}028 logged events, authorized for
+    23 of 26 activities.
+    \item \textbf{User\_108:} 2.4\% occupation, 753 logged events, authorized for
+    23 of 26 activities.
+\end{itemize}
+\subsubsection{Impact on Metrics}
+To evaluate the effect of removing the selected resources, the simulation was rerun after excluding User\_76 and User\_108 from the resource pool. The following table summarizes the results: ,
+\begin{table}[H]
+\centering
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lccc}
+\toprule
+Scenario & Cycle time (days) & Occupation & Fairness (Gini) \\
+\midrule
+Baseline (149 resources) & 0.25 & 0.164 & 0.801 \\
+After removal (147 resources) & 0.26 & 0.159 & 0.808 \\
+\bottomrule
+\end{tabular}
+}
+\caption{Simulated impact of removing User\_76 and User\_108}
+\end{table}
+As expected, removing two resources caused only a very small increase in average cycle time (0.25 to 0.26 days), indicating that the overall processing capacity is largely unaffected. This is consistent with the low utility of the selected resources. The remaining metrics changed only slightly. The average resource occupation decreased slightly, despite the reduced workforce, because the simulation also completed slightly fewer cases (579 instead of 583). Similarly, the fairness metric (Gini) increased only by 0.007. This suggests a slightly less balanced workload distribution after the remaining tasks were redistributed among the available resources.
+Overall, the experiment confirms that removing User\_76 and User\_108 has a very minor impact on system performance. The observed differences are small and likely influenced by the stochastic nature of the simulation. A better assessment would repeat both scenarios with multiple random seeds and compare the results.
 
 \section{Use of AI Tools}\label{sec:ai}
 \input{sections/ai_tools}
