@@ -242,11 +242,11 @@ class ProcessTimeEngine:
                     "hour_of_day": first_hour,
                     "weekday": first_weekday,
                     "rework_count": rework_count,
-                    "final timepoint": log["time:timestamp"][i]
+                    "final_timepoint": log["time:timestamp"][i]
                 }
                 if self.metricProcessing and "strain_time_difference" in log.columns:
                     infos.update({
-                        "strain_time": log["strain_time_difference"]
+                        "strain_time": log["strain_time_difference"][i]
                     })
                 event_times.append(infos)
                 total_active_time = 0.0
