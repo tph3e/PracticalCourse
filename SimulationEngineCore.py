@@ -149,10 +149,14 @@ class Engine:
         "EventOrigin": "Application"
         }
     
-    def push_waiting_processes(self, event: Event, eventType=EventType.ACTIVITY_RESUME):
+    def push_waiting_processes(self, event: Event, eventType=EventType.ACTIVITY_SUSPEND):
         event.update({"lifecycle:transition": eventType})
         heapq.heappush(self.waiting_processes, event)
 
+    def suspend_event(self, event: Event):
+        event.update({"lifecycle:transition": EventType.ACTIVITY_SUSPEND})
+        self.logger.log_event(event)
+        self.push_event(event.time, EventType.ACTIVITY_RESUME, event.activity, event.getAttribs(), event.eventCase)
 
     def check_waiting_processes(self) -> None:
             unallocated_events =[]

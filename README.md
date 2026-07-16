@@ -9,13 +9,23 @@ Download BPI Challenge 2017.xes from the official 4TU.ResearchData record and pl
 - dataset page: https://data.4tu.nl/articles/dataset/BPI_Challenge_2017/12696884
 
 ### Simulation architecture
-For each of the following tasks an own file is created.
+For each of the following tasks an own file/folder is created.
 - Task 1.1 (Simulation Engine Core)
 - Task 1.2 (Case Arrivals)
 - Task 1.3 (Processing Times)
 - Task 1.4 (Process Model)
 - Task 1.5 (Branching Decisions)
 - Task 1.6 to 1.8 (Resource Availabilities, Resource Permissions, Resource Allocation)
+
+Additionally, allocation and optimization tasks are implemented.
+- Task 2.1 Base Resource Allocation
+- Task 2.2 Batch Allocation
+- Task 2.3 Advanced Approach
+- Task 2.4 Reinforcement Learning
+- Task 3.1 Simple Metrics
+- Task 3.2 Resource Allocation Evaluation
+- Task 3.2 Custom Metrics
+- Task 3.4 Answers to Open Questions
 
 ### Project layout
 

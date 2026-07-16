@@ -59,6 +59,10 @@ Each event and case is modelled as its own class and equipped with attributes th
 
 For case arrival, attributes are sampled according to conditional probabilities when sufficient data is available. Otherwise, fallbacks are used. For each case, the last $n$ ($n \in \mathbb N$) or all events can be returned, as well as a count of how often an activity occurs in a case up to that moment. This is important in feature construction for machine learning. The log can be exported to xes, csv or both which is implemented via an own class.
 
+Note that the case arrival is modelled seperatly from the start of the first activity because the latter requires a resource to be assigned. This choice keeps th model more flexible. If no resource can be assigned to an event, the event is not logged. This is in line with the sample log.
+
+The engine core provides a method to suspend activities so that this can be simulated by resource allocation approaches.
+
 \subsection{Case Arrivals} \textit{(Can Güleç, 1.2)}
 The case arrival engine handles when new process instances show up during the simulation. Instead of just sampling arrival times from one static distribution (the simple approach), we use dynamic arrival rates that change depending on the time of day and day of the week. 
 
