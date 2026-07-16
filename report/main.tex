@@ -52,7 +52,12 @@ documents our use of AI tools.
 \section{Simulation Model (Part~I)}\label{sec:sim}
 
 \subsection{Simulation Engine Core}
-\textit{(Thomas, 1.1)}\quad
+\textit{(Thomas P. Hartel, 1.1)}\quad
+
+For the discrete simulation core, a priority queue is used with a custom priority rule based on the simulation time point, the event type and otherwise on the case ID. The latter ensures that there is always a clear order. The event type ensures that activities are terminated first before others are resumed and before any new activity is started. This is only logical because it ensures that resources are freed as soon as possible and can take up a new activity as soon as they finish their last one.
+Each event and case is modelled as its own class and equipped with attributes that can be jointly retrieved and updated in the standard XES format.
+
+For case arrival, attributes are sampled according to conditional probabilities when sufficient data is available. Otherwise, fallbacks are used. For each case, the last $n$ ($n \in \mathbb N$) or all events can be returned, as well as a count of how often an activity occurs in a case up to that moment. This is important in feature construction for machine learning. The log can be exported to xes, csv or both which is implemented via an own class.
 
 \subsection{Case Arrivals} \textit{(Can Güleç, 1.2)}
 The case arrival engine handles when new process instances show up during the simulation. Instead of just sampling arrival times from one static distribution (the simple approach), we use dynamic arrival rates that change depending on the time of day and day of the week. 
@@ -70,7 +75,19 @@ $$\Delta t \sim \text{Exponential}\left(\lambda = \frac{1}{S(t)}\right)$$
 This design was inspired by Kirchdorfer et al. (2025) \cite{kirchdorfer2025divide}, who make a strong case for preserving intraday and weekday dynamics in order to avoid distorting business process simulations. We didn't go as far as their full AT-KDE method, which uses clustering and kernel density estimation to automatically learn arrival patterns from historical data. Instead, we went with a simpler, more hands-on approach, manually defining multipliers that still capture the key weekday and time of the day effects.
 
 \subsection{Processing Times}
-\textit{(Thomas, 1.3)}\quad
+\textit{(Thomas P. Hartel, 1.3)}\quad
+
+The process time engine provides the processing and waiting times for the engine.
+For all models, processing and waiting times are computed seperatly.
+
+For the standard basic modells, a binomial model tracks the proportion of zero-duration events to accurately sample instantenous tasks. Then, a Gamma, a Lognormal and a Poisson distribution are fitted to the non-zero timespans for each combination of activity and resource. The optimal distribution is automatically selected by the Akaike Information Criterion based on the number of parameters and the likelihood. If there is insufficient data to fit the combination of activity and resource, the three distributions are fitted only to the activity.
+
+For the advanced contextual model a Random Forest Regressor is employed. The pipeline uses a Column Transformer to handle missing values via median imputation and categorical variables via one-hot encoding. This allows the model to predict times based on the specific attributes of a case at a given moment. Additionally, the hour of day and the weekday at event start are used as variables. Also a variable counting how often this activity occured in the case, is used. This can be reasonable as it a repeated activity may be faster than the first one.
+
+For uncertainty estimation, a quantile regression based on a Gradient Boosting Tree is used. By training pipelines for the $25$th, $50$th, and $75$th percentiles, the engine does not just output a static expected value. Instead, it provides a probabilistic bounds estimation, which is vital for risk assessment in process execution.
+
+To prevent retraining the model for every simulation run, the models are stored. If they are found at the respective path, the models are just loaded instead of retrained.
+
 
 \subsection{Process Model}
 \textit{(Can Güleç, 1.4)}\quad

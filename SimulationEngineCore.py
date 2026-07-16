@@ -39,8 +39,6 @@ class EventLogger:
         if not self.records:
             return pd.DataFrame()
         return pd.DataFrame(self.records)
-
-    
     
     def to_csv(self, filepath=PATH_LOG+".csv") -> None:
         df = self.get_log()

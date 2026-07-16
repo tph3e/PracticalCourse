@@ -21,7 +21,7 @@ PATH_LOG_TRAINING = "data/BPI Challenge 2017.xes"
 
 class ProcessTimeEngine:
 
-    def __init__(self, log=None, seed=1, waiting_advanced=False, processing_advanced=False, metricProcessing=False):
+    def __init__(self, log=None, seed=1, waiting_advanced=True, processing_advanced=True, metricProcessing=False):
         self.metricProcessing=metricProcessing
         if metricProcessing:
             return
@@ -127,8 +127,8 @@ class ProcessTimeEngine:
     def train_advanced(self, event_times: pd.DataFrame):
         self.models_advanced = {}
         quantiles = [i/4 for i in range(1,4)]
-        numeric_features = ["case:RequestedAmount", "hour_of_day", "weekday"]
-        categorical_features = ["case:ApplicationType", "org:resource", "rework_count", "concept:name"]
+        numeric_features = ["case:RequestedAmount", "hour_of_day", "rework_count", "weekday"]
+        categorical_features = ["case:ApplicationType", "org:resource", "concept:name"]
 
         preprocessor = sklearn.compose.ColumnTransformer(
             transformers=[
@@ -143,7 +143,7 @@ class ProcessTimeEngine:
                 continue
             model = sklearn.pipeline.Pipeline(steps=[
                 ('preprocessor', sklearn.base.clone(preprocessor)),
-                ('regressor', sklearn.ensemble.RandomForestRegressor(n_estimators=10, random_state=self.rndm_state, max_depth=5))
+                ('regressor', sklearn.ensemble.RandomForestRegressor(n_estimators=100, random_state=self.rndm_state, max_depth=10))
             ])
 
             model.fit(X, y)
@@ -154,104 +154,102 @@ class ProcessTimeEngine:
                 regressor = GradientBoostingRegressor(loss='quantile', alpha=q, random_state=self.rndm_state)
                 pipeline = sklearn.pipeline.Pipeline(steps=[('preprocessor', sklearn.base.clone(preprocessor)), ('regressor', regressor)])
                 pipeline.fit(X, y)
-                results_quantiles[round(q,1)] = pipeline
+                results_quantiles[round(q,2)] = pipeline
             
             self.models_quantiles[f"{kind}"] = results_quantiles
 
     def format_data(self, log: pd.DataFrame):
-        log = log.sort_values(["case:concept:name", "time:timestamp"])
-        
-        cases = log["case:concept:name"].values
-        activities = log["concept:name"].values
-        transitions = log["lifecycle:transition"].values
-        resources = log["org:resource"].values
-        app_types = log["case:ApplicationType"].values
-        req_amounts = log["case:RequestedAmount"].values
-        
-        ts_seconds = log["time:timestamp"].astype('int64').values // 10**9
-        
-        hours = log["time:timestamp"].dt.hour.values
-        weekdays = log["time:timestamp"].dt.weekday.values
-
-        event_times = []
-        last_complete_time = {}
-        active_start = None
-        total_active_time = 0.0
-        waiting_time = 0.0
-        
-        first_hour = None
-        first_weekday = None
-        applicationType = None
-        requestedAmount = None
-
-        prev_group = None
-        rework_count =0
-
-        for i in range(len(log)):
-            case = cases[i]
-            activity = activities[i]
-            t_sec = ts_seconds[i]
-            transition = transitions[i]
+            log = log.sort_values(["case:concept:name", "time:timestamp"]).reset_index(drop=True)
             
-            current_group = (case, activity)
+            cases = log["case:concept:name"].values
+            activities = log["concept:name"].values
+            transitions = log["lifecycle:transition"].values
+            resources = log["org:resource"].values
+            app_types = log["case:ApplicationType"].values
+            req_amounts = log["case:RequestedAmount"].values
+            timestamps = log["time:timestamp"].values
+            
+            ts_seconds = log["time:timestamp"].astype('int64').values // 10**9
+            hours = log["time:timestamp"].dt.hour.values
+            weekdays = log["time:timestamp"].dt.weekday.values
 
-            if current_group != prev_group:
-                active_start = None
-                total_active_time = 0.0
-                first_hour = hours[i]
-                first_weekday = weekdays[i]
-                applicationType = None
-                requestedAmount = None
-                prev_group = current_group
+            event_times = []
+            
+            last_complete_time = {}
+            active_starts = {}
+            total_active_times = {}
+            first_hours = {}
+            first_weekdays = {}
+            rework_counts = {}
+            
+            case_app_types = {}
+            case_req_amounts = {}
+            waiting_time={}
 
-            if transition == "start":
-                active_start = t_sec
-                total_active_time = 0.0
-                first_hour = hours[i]
-                first_weekday = weekdays[i]
-                applicationType = app_types[i]
-                requestedAmount = req_amounts[i]
-                rework_count+=1
+            for i in range(len(log)):
+                case = cases[i]
+                activity = activities[i]
+                t_sec = ts_seconds[i]
+                transition = transitions[i]
+                group = (case, activity)
 
-                if case in last_complete_time:
-                    waiting_time = t_sec - last_complete_time[case]
-                else:
-                    waiting_time = 0.0
-                    rework_count =0
+                if pd.notna(app_types[i]):
+                    case_app_types[case] = app_types[i]
+                if pd.notna(req_amounts[i]):
+                    case_req_amounts[case] = req_amounts[i]
+
+                if group not in total_active_times:
+                    total_active_times[group] = 0.0
+                if group not in rework_counts:
+                    rework_counts[group] = 0
                 
-            elif transition == "resume":
-                active_start = t_sec
+                if transition == "start":
+                    active_starts[group] = t_sec
+                    total_active_times[group] = 0.0
+                    first_hours[group] = hours[i]
+                    first_weekdays[group] = weekdays[i]
+                    rework_counts[group] += 1
+
+                    waiting_time[case] = float(t_sec - last_complete_time[case]) if case in last_complete_time else 0.0
                     
-            elif transition == "suspend":
-                if active_start is not None:
-                    total_active_time += (t_sec - active_start)
-                    active_start = None
-                
-            elif transition == "complete":
-                if active_start is not None:
-                    total_active_time += (t_sec - active_start)
-                    active_start = None
-                infos ={
-                    "case:concept:name": case,
-                    "concept:name": activity,
-                    "processing_time": float(total_active_time),
-                    "waiting_time": float(waiting_time),
-                    "org:resource": resources[i],
-                    "case:RequestedAmount": requestedAmount,
-                    "case:ApplicationType": applicationType,
-                    "hour_of_day": first_hour,
-                    "weekday": first_weekday,
-                    "rework_count": rework_count,
-                    "final_timepoint": log["time:timestamp"][i]
-                }
-                if self.metricProcessing and "strain_time_difference" in log.columns:
-                    infos.update({
-                        "strain_time": log["strain_time_difference"][i]
-                    })
-                event_times.append(infos)
-                total_active_time = 0.0
-                last_complete_time[case] = t_sec
-        return pd.DataFrame.from_records(event_times)
+                elif transition == "resume":
+                    active_starts[group] = t_sec
+                    
+                elif transition == "suspend":
+                    if active_starts.get(group) is not None:
+                        total_active_times[group] += (t_sec - active_starts[group])
+                        active_starts[group] = None
+                    
+                elif transition == "complete":
+                    if active_starts.get(group) is not None:
+                        total_active_times[group] += (t_sec - active_starts[group])
+                        active_starts[group] = None
+
+                    infos = {
+                        "case:concept:name": case,
+                        "concept:name": activity,
+                        "processing_time": float(total_active_times[group]),
+                        "waiting_time": waiting_time.get(case,0),
+                        "org:resource": resources[i],
+                        "case:RequestedAmount": case_req_amounts.get(case, np.nan),
+                        "case:ApplicationType": case_app_types.get(case, "Unknown"),
+                        "hour_of_day": first_hours.get(group, hours[i]),
+                        "weekday": first_weekdays.get(group, weekdays[i]),
+                        "rework_count": rework_counts[group],
+                        "final_timepoint": timestamps[i]
+                    }
+                    if waiting_time.get(case,0)<0:
+                        print(waiting_time.get(case,0))
+                    
+                    if self.metricProcessing and "strain_time_difference" in log.columns:
+                        infos["strain_time"] = log["strain_time_difference"].values[i]
+                        
+                    event_times.append(infos)
+                    
+                    total_active_times[group] = 0.0
+                    last_complete_time[case] = t_sec
+
+            return pd.DataFrame.from_records(event_times)
     
     def sample_distrib(self, distrib, param) -> timedelta:
         if distrib == "poisson":
@@ -309,8 +307,8 @@ class ProcessTimeEngine:
         return timedelta(seconds=int(predicted_seconds))
     
     def getQuantileTime(self, event: Event, kind: str, q_value: float) -> timedelta:
-        if kind in self.models_quantiles and round(q_value,1) in self.models_quantiles[kind]:
-            pipeline = self.models_quantiles[kind][round(q_value,1)]
+        if kind in self.models_quantiles and round(q_value,2) in self.models_quantiles[kind]:
+            pipeline = self.models_quantiles[kind][round(q_value,2)]
             context_df = pd.DataFrame([{
                 "concept:name": event.activity,
                 "case:RequestedAmount": float(event.eventCase.requestedAmount),

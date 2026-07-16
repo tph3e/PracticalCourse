@@ -310,7 +310,7 @@ class ProcessLogAnalyzer:
                 "Avg Rework Rate (Self-Loops)": round(self.avg_rework_rate(), 2),
                 "Total processoral value": round(self.calculate_resource_criticality_score()["Resource_Criticality_Score"].sum(),2),
                 "Network Algebraic Connectivity (\u03BB\u2082)": self.calculate_algebraic_connectivity(),
-                "Efect of Suspensions": self.calculate_supsension_contagion(),
+                "Effect of Suspensions": self.calculate_supsension_contagion(),
                 "Calculate Strain": self.calculate_24h_strain_impact()
             }
 

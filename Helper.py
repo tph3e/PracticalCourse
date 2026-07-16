@@ -4,6 +4,7 @@ from enum import Enum
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from collections import Counter
+import copy
 
 offerDefault = {'FirstWithdrawalAmount': None,
  'NumberOfTerms': None,
@@ -138,7 +139,7 @@ class Event:
             'EventOrigin': self.eventOrigin,
             'EventID': self.eventId,
             'lifecycle:transition': self.eventType.value if isinstance(self.eventType, EventType) else self.eventType,
-            'time:timestamp': self.time,
+            'time:timestamp': copy.deepcopy(self.time),
             'case:LoanGoal': self.eventCase.loanGoal if self.eventCase else None,
             'case:ApplicationType': self.eventCase.applicationType if self.eventCase else None,
             'case:concept:name': str(self.eventCase.caseId) if self.eventCase else None,
