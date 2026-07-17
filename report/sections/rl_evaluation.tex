@@ -1,49 +1,53 @@
 \subsubsection{Reinforcement-Learning Policy}\label{ssub:rl-eval}
 \textit{(Aldo Patrone)}\quad
-The RL policy (Sec.~\ref{subsec:rl}) is evaluated at two levels. A fast controlled
-case-based environment, calibrated to BPIC-17 (arrival rate and case length matched),
-serves method development and is illustrated in the Appendix
-(Fig.~\ref{fig:alloc_cmp_plot}): the learned agents trade cycle time against fairness,
-yet the simple \emph{shortest-queue} heuristic already matches them, since greedy
-load-balancing serves fairness directly. The robust verdict comes from the integrated
-simulator, where every method runs through the identical event engine and is scored by
-\emph{compute\_all} (Sec.~\ref{ssub:metrics}) over five random seeds under a congested
-load (Table~\ref{tab:alloc_sim}). No deep-learning variant beats shortest-queue: the
-fairness Gini is a statistical tie across all methods (about $0.58 \pm 0.02$), while
-shortest-queue clearly leads resource occupation ($0.77$ against roughly $0.54$ to
-$0.65$). Average cycle time was $0.3$ days for every method, so allocation barely moves
-it and it is left out of the table.
-
-This negative result is deliberately robust rather than an artifact of weak training.
-The obvious counter-explanations were each closed: the training and inference load
-features were aligned to the same quantity, the fairness signal was made scale-invariant
-so it does not vanish over long episodes, the policy was trained directly on the
-integrated simulator (sim-in-the-loop), the state-of-the-art \emph{MaskablePPO} was
-included and a PPO learner was trained on the simulator itself, warm-started from the
-surrogate policy, as in Middelhuis et al.~\cite{middelhuis2025rl}. None surpasses the
-heuristic. The explanation is structural: shortest-queue is near-optimal for the
-load-Gini fairness metric, while cycle time is insensitive to allocation in this process,
-so the added complexity of a learned policy is not justified for this objective. The
-full cross-method comparison of all group methods is synthesized in
-Sec.~\ref{ssub:cross-eval}.
+The paper-faithful policy (Sec.~\ref{subsec:rl}) is evaluated in the discrete-event environment it
+is trained in, the setting Middelhuis et al.\ also evaluate in, against four baselines that
+make the same $(\text{resource},\text{activity})$ decisions: random, round-robin, shortest-queue
+and most-experienced. All are scored on the paper's objective, the mean cycle time, and on load
+fairness (Table~\ref{tab:alloc_sim}). The learning curve is in Fig.~\ref{fig:rl_curve} and the
+auxiliary numpy baselines in Fig.~\ref{fig:alloc_cmp_plot}.
 
 \begin{table}[!h]
-    \caption{Allocation methods on the integrated simulator, congested load, mean over
-    five seeds with standard deviation (lower Gini is fairer). Cycle time was $0.3$ days
-    for all methods.}
+    \caption{Allocation methods in the paper-faithful environment (state $2|R|+|A|$, $(r,a)$ action
+    space, cycle-time reward), mean over $25$ evaluation episodes. Lower Gini is fairer.}
     \centering
     \renewcommand{\arraystretch}{1.2}
     \footnotesize
     \begin{tabular}{lcc}
         \toprule
-        \textbf{Method} & \textbf{Fairness Gini} & \textbf{Occupation} \\
+        \textbf{Method} & \textbf{Cycle time (h)} & \textbf{Load Gini} \\
         \midrule
-        Shortest-queue      & $0.582 \pm 0.024$ & $\mathbf{0.772 \pm 0.058}$ \\
-        Random              & $0.581 \pm 0.017$ & $0.647 \pm 0.096$ \\
-        Most-experienced    & $0.614 \pm 0.010$ & $0.540 \pm 0.037$ \\
-        PPO (MaskablePPO)   & $0.576 \pm 0.015$ & $0.567 \pm 0.049$ \\
-        PPO on simulator    & $0.584 \pm 0.023$ & $0.538 \pm 0.046$ \\
+        Random            & $4.81$ & $0.275$ \\
+        Round-robin       & $4.80$ & $0.270$ \\
+        Shortest-queue    & $4.64$ & $\mathbf{0.158}$ \\
+        Most-experienced  & $\mathbf{4.46}$ & $0.378$ \\
+        PPO (MaskablePPO) & $4.86$ & $0.424$ \\
         \bottomrule
     \end{tabular}
     \label{tab:alloc_sim}
 \end{table}
+
+The result is a robust \emph{negative} one: even with the full paper MDP, a queue-aware
+$2|R|+|A|$ state, the $(r,a)$-pair action space with masking and the cycle-time reward, the
+learned policy does not beat the simple heuristics. Cycle time is nearly flat across all methods
+($4.5$--$4.9$\,h), so the allocation choice barely moves it. On fairness, shortest-queue is clearly
+best ($0.158$) while the learned policy ($0.424$) does not improve on it. Most-experienced attains
+the lowest cycle time ($4.46$\,h) by concentrating work on skilled resources, at the cost of
+fairness. The learning curve confirms the agent trains (returns rise and plateau over $750$
+episodes), so this is not an artifact of a broken run.
+
+The explanation is structural and matches the paper's own observation that well-matched heuristics
+are strong: shortest-queue is near-optimal for a load-balancing fairness objective, and in this
+process the cycle time is dominated by arrivals and processing times rather than by which eligible
+resource is chosen. Figure~\ref{fig:rl_load} makes this visible, shortest-queue spreads work most
+evenly while the learned policy concentrates it on few resources. The applicability answer the
+assignment asks for is therefore that, for this
+process and objective, a learned allocation policy is \emph{not} justified over a one-line
+heuristic. Deep RL would pay off in settings with sharper resource--activity specialization or
+binding capacity constraints, where the assignment actually changes the cycle time.
+
+The trained policy also deploys onto the integrated \emph{SimulationEngineCore} through the
+\emph{PPOAllocation} strategy (the per-task reduction of Sec.~\ref{subsec:rl}), which we validated
+structurally. A full integrated multi-seed rerun of the deep model requires the engine's XES reader
+and the original processing-time model together with the sb3 stack in a single environment. The
+integrated baseline comparison across all group methods is reported in Sec.~\ref{ssub:cross-eval}.

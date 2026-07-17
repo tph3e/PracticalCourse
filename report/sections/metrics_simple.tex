@@ -15,6 +15,25 @@ more meaningful (Table~\ref{tab:metrics_ref}: $27\%$ vs.\ $96\%$). \emph{Resourc
 (Sec.~\ref{subsec:rl}) and as the metric basis for the overall method comparison
 (Sec.~\ref{ssub:cross-eval}).
 
+Formally, for cases $C$, resources $R$ and a resource's activity intervals
+$[s_{r,k}, e_{r,k}]$, the three metrics of Lecture~6 are
+\[
+\overline{CT}=\frac{1}{|C|}\sum_{c\in C}\Big(\max_{e\in c}t(e)-\min_{e\in c}t(e)\Big),
+\]
+\[
+\quad
+\overline{occ}=\frac{1}{|R|}\sum_{r\in R}\frac{\big|\bigcup_k[s_{r,k},e_{r,k}]\big|}{\mathrm{avail}_r},
+\]
+\[
+G=\frac{\sum_{i}\sum_{j}\lvert x_i-x_j\rvert}{2\,|R|\sum_i x_i}\quad(\text{lower is fairer}),
+\]
+where $\overline{CT}$ is the per-case span (Def.~14 of~\cite{middelhuis2025rl}), the busy
+time is the \emph{union} of intervals, $\mathrm{avail}_r$ is the available time from the learned
+calendars (Sec.~\ref{subsec:resources}), and the fairness Gini $G$ is taken over the per-resource
+load $x_r$ (busy seconds, or availability-normalized $x_r=\text{busy}_r/\mathrm{avail}_r$ for the
+weighted variant), a scale-invariant form of the course's ``deviation from the average
+occupation''.
+
 \begin{table}[!h]
     \caption{Evaluation metrics on the real BPIC-17 log.}
     \centering

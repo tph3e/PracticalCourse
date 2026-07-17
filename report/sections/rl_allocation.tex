@@ -1,28 +1,70 @@
 \subsection{Reinforcement-Learning Allocation Policy}\label{subsec:rl}
 \textit{(Aldo Patrone)}\quad
-The allocation policy is learned by modeling the problem as in Middelhuis et
-al.~\cite{middelhuis2025rl}: a case-based discrete-event environment, \emph{calibrated
-to the real log} (arrival rate, case length, activity sequences from the BPMN model and
-per-activity processing times matched to BPIC-17), where at each decision step the agent
-assigns a resource to a ready activity instance \emph{or postpones}. The reward encodes a
-disclosed, equally-weighted objective of \emph{cycle time and fairness}: a per-case
-inverse-cycle-time reward plus shaping on the Gini of resource loads. It was aligned to
-the objective but deliberately \emph{not} tuned to the evaluation score. The postpone
-action was found to destabilize training under a pure fairness penalty (it became a way
-to avoid assigning), so it carries a fixed cost.
+The allocation policy is learned as a deep-RL agent, faithful to Middelhuis et
+al.~\cite{middelhuis2025rl}. The environment is a discrete-event simulation of the process, the ``simulator'' the paper trains in, calibrated to BPIC-17 through our own engines
+(interarrival gaps from the arrival engine, per-activity processing and waiting times and
+BPMN-valid case sequences from the process model and branching engine). The Markov decision
+process matches the paper (Fig.~\ref{fig:rl_mdp}):
 
-The variable action space is handled two ways: a from-scratch per-candidate-scoring
-policy (compact MLP, REINFORCE, pure \emph{numpy}) and the state-of-the-art
-\emph{MaskablePPO} over the masked resource set (sb3-contrib, isolated venv, 600k steps).
-So that a surrogate-trained policy behaves identically once deployed, the load feature
-uses the same quantity at training and inference, the running allocation count that the
-live \emph{ResourceEngine} exposes. A more faithful variant then trains the policy
-\emph{directly on the integrated simulator}: the recording strategy drives it during a
-normal forward run, so no environment inversion is needed. A PPO-style update (value
-critic, generalized advantage estimation, clipped objective) then refines it,
-warm-started from the surrogate policy. Every variant plugs into the swappable
-\emph{AllocationStrategy.pick(candidates, context)} interface (a postpone returns
-\emph{None}). The REINFORCE policy serializes to JSON, so its deployment needs no
-machine-learning dependency at runtime. Training hyperparameters and the learning curve
-are in the Appendix (Table~\ref{tab:rl_hparams}, Fig.~\ref{fig:rl_curve}). The policy is
-evaluated against the other methods in Sec.~\ref{ssub:rl-eval}.
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/rl_mdp_schematic.png}
+    \caption{Markov decision process for the allocation policy (Aldo Patrone), matching Middelhuis
+    et al.: a $2|R|+|A|$ state, a masked $(\text{resource},\text{activity})$ action space plus
+    postpone and a cycle-time reward, learned with MaskablePPO on the calibrated discrete-event
+    environment and deployed onto the integrated engine via a per-task reduction.}
+    \label{fig:rl_mdp}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{State} ($2|R|+|A|$): for every resource a busy flag $\delta_i\in\{0,1\}$ and,
+  when busy, which activity it executes $\eta_i\in[0,1]$. For every activity the normalized
+  queue of unassigned instances $\kappa_j=\min(|K_{a_j}|/100,\,1)$.
+  \item \textbf{Action} ($|R|\cdot|A|+1$): every (resource, activity) assignment plus a
+  \emph{postpone}. Infeasible pairs are removed by an \emph{action mask}: a pair is infeasible
+  when there is no waiting instance of that activity, or the resource is busy, unavailable or
+  unauthorized.
+  \item \textbf{Reward}: the objective is to minimize the mean cycle time. Each time the
+  simulation advances by $\Delta t$ the agent receives $-\Delta t\cdot n_{\text{active}}/3600$,
+  which telescopes to the negative total cycle time (Def.~13--14 of~\cite{middelhuis2025rl}),
+  plus a small potential-based shaping on the load Gini for fairness.
+\end{itemize}
+We train the paper's algorithm, PPO~\cite{schulman2017ppo}, in its action-masking variant
+\emph{MaskablePPO}~\cite{huang2022masking} (sb3-contrib~\cite{raffin2021sb3}), which handles the
+variable feasible-action set through the mask. Postponing accrues the same time-in-system penalty, so
+idling is discouraged without an artificial cost. A bounded fallback forces the least-loaded
+assignment after repeated postpones to keep training stable.
+
+The two learners optimize the standard objectives. MaskablePPO maximizes the clipped surrogate
+\[
+L^{\mathrm{CLIP}}(\theta)=\hat{\mathbb{E}}_t\!\big[\min\!\big(\rho_t\hat{A}_t,\;
+\mathrm{clip}(\rho_t,1{-}\epsilon,1{+}\epsilon)\,\hat{A}_t\big)\big],
+\]
+\[
+\quad
+\rho_t=\tfrac{\pi_\theta(a_t\mid s_t)}{\pi_{\theta_{\mathrm{old}}}(a_t\mid s_t)},
+\]
+while the REINFORCE baseline follows the policy-gradient rule
+\[
+\nabla_\theta J=\hat{\mathbb{E}}_t\!\big[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,(G_t-b)\big],
+\]
+with advantage $\hat{A}_t$, return-to-go $G_t$ and a running baseline $b$. Infeasible actions are
+zeroed in $\pi_\theta$ before normalization.
+
+The learned policy is deployed onto the integrated simulator through the swappable
+\emph{AllocationStrategy.pick(candidates, context)} interface. Because the engine allocates one
+ready activity instance at a time, deployment is a \emph{per-task reduction}: the mask is
+restricted to the current activity, so the policy selects the resource for the task at hand (a
+postpone returns \emph{None} and the core suspends and retries). The state's $\delta$ and
+$\eta$ are reconstructed from the live \emph{ResourceEngine}. The global queue term $\kappa$ is
+not observable at a single decision, so it is reduced to the locally known waiting instance,
+a disclosed reduced-observation deployment, while the full $\kappa$ evaluation is carried out in
+the paper-style environment itself.
+
+As a lightweight baseline we additionally implemented, from scratch in pure \emph{numpy}, a
+per-candidate-scoring REINFORCE~\cite{williams1992reinforce, sutton2018rl} policy on the same
+calibrated environment. It is exploratory and
+not claimed to be paper-faithful, and it serializes to JSON so its deployment needs no
+machine-learning dependency at runtime. Hyperparameters and the learning curve are in the Appendix
+(Table~\ref{tab:rl_hparams}, Fig.~\ref{fig:rl_curve}). The policy is evaluated against the other
+methods in Sec.~\ref{ssub:rl-eval}.

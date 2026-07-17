@@ -10,30 +10,23 @@
     \begin{tabular}{lll}
         \toprule
         \textbf{Setting} & \textbf{REINFORCE} & \textbf{MaskablePPO} \\
+                         & \textbf{(surrogate)} & \textbf{(paper MDP)} \\
         \midrule
         Policy        & per-candidate MLP & MlpPolicy \\
-        Hidden layers & $24$ & $64$-$64$ \\
+        Hidden layers & $24$ & $128$-$128$ \\
         Learning rate & $0.05$ & $3\cdot10^{-4}$ \\
         Discount $\gamma$ & $0.99$ & $0.99$ \\
-        Entropy bonus & $0.01$ & default \\
         Training      & $500$ ep.\ $\times\,600$ & $600\mathrm{k}$ steps \\
         Rollout       & full-episode & $n=2048$, batch $256$ \\
         Seed          & $1$ & $1$ \\
+        State         & $5$ per-cand.\ feat. & $2|R|{+}|A|$ ($\delta,\eta,\kappa$) \\
+        Action        & per-cand.\ + postpone & $|R|{\cdot}|A|{+}1$ (masked) \\
+        Reward        & $\tfrac{1}{\mathrm{CT}/3600+1}$+Gini & $-\Delta t\,n_{\mathrm{act}}/3600$+Gini \\
         \midrule
-        \multicolumn{3}{l}{\textit{Environment and reward (shared)}} \\
-        Per-candidate features & \multicolumn{2}{l}{$5$} \\
+        \multicolumn{3}{l}{\textit{Shared environment (calibrated to BPIC-17)}} \\
         Mean interarrival      & \multicolumn{2}{l}{$1000$ s} \\
         Case length            & \multicolumn{2}{l}{$8$ to $21$ activities} \\
-        Max postpone           & \multicolumn{2}{l}{$3$} \\
-        Reward                 & \multicolumn{2}{l}{$1/(\mathrm{CT}/3600+1)$ + Gini shaping} \\
-        Fairness weight        & \multicolumn{2}{l}{$W_{\mathrm{fair}}=5.0$} \\
-        Postpone penalty       & \multicolumn{2}{l}{$-0.5$} \\
-        \midrule
-        \multicolumn{3}{l}{\textit{Sim-in-the-loop variant (PPO on the integrated simulator)}} \\
-        Init                   & \multicolumn{2}{l}{warm-started from the REINFORCE policy} \\
-        Update                 & \multicolumn{2}{l}{PPO-style: value critic, GAE $\lambda=0.95$, clip $0.2$} \\
-        Iterations             & \multicolumn{2}{l}{$200$ (one simulator episode each)} \\
-        Reward                 & \multicolumn{2}{l}{dense scale-invariant Gini + progress} \\
+        Max postpone           & \multicolumn{2}{l}{$3$ (least-loaded fallback)} \\
         \bottomrule
     \end{tabular}
     \label{tab:rl_hparams}
@@ -42,8 +35,9 @@
 \begin{figure}[H]
     \centering
     \includegraphics[width=\columnwidth]{figures/rl_learning_curve.png}
-    \caption{REINFORCE learning curve (Aldo Patrone). The episode return rises as the
-    per-candidate policy learns the disclosed cycle-time and fairness objective.}
+    \caption{MaskablePPO learning curve (Aldo Patrone) from the paper-faithful $600$k-step
+    training run: the episode return (cycle-time reward) rises and plateaus over $750$
+    episodes.}
     \label{fig:rl_curve}
 \end{figure}
 \FloatBarrier
@@ -52,10 +46,20 @@
 \begin{figure}[H]
     \centering
     \includegraphics[width=\columnwidth]{figures/allocation_comparison.png}
-    \caption{Allocation methods on the controlled case-based environment (Aldo Patrone):
-    cycle time, load Gini and combined score. The robust verdict over the integrated
-    simulator and multiple seeds is in Table~\ref{tab:alloc_sim}.}
+    \caption{Auxiliary numpy-baseline comparison on the case-based environment (Aldo
+    Patrone): cycle time, load Gini and combined score. The paper-faithful MaskablePPO
+    evaluation is Table~\ref{tab:alloc_sim}.}
     \label{fig:alloc_cmp_plot}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/rl_load_distribution.png}
+    \caption{Load concentration by allocation method (Aldo Patrone), Lorenz curves of per-resource
+    busy time aggregated over ten evaluation episodes. Shortest-queue stays closest to the equal
+    line, while most-experienced and the learned policy concentrate work on few resources,
+    explaining the fairness ordering in Table~\ref{tab:alloc_sim} (per-run Gini values there).}
+    \label{fig:rl_load}
 \end{figure}
 \FloatBarrier
 
@@ -75,6 +79,16 @@
     \caption{Per-resource availability breadth (Aldo Patrone), the number of active
     (weekday, hour) buckets in each learned calendar out of $168$.}
     \label{fig:cal_sizes}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/availability_capacity_heatmap.png}
+    \caption{Learned availability capacity (Aldo Patrone): number of resources available by
+    (weekday, hour), aggregated over all per-resource calendars. Availability concentrates on
+    weekday business hours, so the learned model enforces realistic working windows without a
+    blanket interval.}
+    \label{fig:avail_capacity}
 \end{figure}
 
 \begin{figure}[H]
