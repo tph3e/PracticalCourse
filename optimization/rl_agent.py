@@ -1,9 +1,4 @@
-# 1.1 advanced — neural policy-gradient (reinforce) allocation agent.
-
-# A compact per-candidate scoring policy (a small MLP) trained with reinforce on
-# the standalone AllocationEnv. The policy scores each candidate's feature vector
-
-# Everything is pure numpy: training and the runtime forward pass
+# 1.1 advanced: neural policy-gradient (reinforce) allocation agent, a pure-numpy MLP scoring each candidate's feature vector.
 
 from __future__ import annotations
 
@@ -13,7 +8,6 @@ import numpy as np
 
 from resources.allocation import AllocationStrategy
 from .environment import AllocationEnv, build_features, N_FEATURES
-from .metrics import gini as _gini
 
 
 # policy network (numpy MLP: features -> hidden(tanh) -> scalar score)
@@ -45,9 +39,8 @@ class PolicyNet:
         return net
 
 
-# REINFORCE gradient step from a recorded trajectory. Shared by the standalone trainer
-# (train) and the sim-in-the-loop trainer (2C). traj: list of (X, action, hidden, probs,
-# reward). baseline: running mean (None on the first call). Returns the updated baseline.
+# REINFORCE gradient step from a recorded trajectory, shared by train() and the 2C sim-in-the-loop trainer.
+# traj entries are (X, action, hidden, probs, reward), baseline is a running mean (None on the first call). Returns the updated baseline.
 def reinforce_update(net, traj, baseline=None, lr=0.02, gamma=0.99, entropy_beta=0.01):
     if not traj:
         return baseline
@@ -160,44 +153,3 @@ class RLAllocation(AllocationStrategy):
         # only calendar sizes are needed for the availability feature
         calendars = {r: range(n) for r, n in b["cal_sizes"].items()}
         return cls(net, calendars, b["skill"], int(b["max_cal"]))
-
-
-# 2C: sim-in-the-loop training strategy. Same features as RLAllocation but SAMPLES the action
-# (exploration), records each decision as a REINFORCE transition, and computes a shaped fairness
-# reward from the allocation-count load (matches (a); NOT compute_all). Injected into the real
-# Engine via resourceEngine.set_allocation; after each sim run the trajectory feeds reinforce_update.
-class RecordingRLAllocation(RLAllocation):
-    def __init__(self, net, calendars, skill, max_cal, rng, w_fair: float = 1.0,
-                 progress_reward: float = 1.0):
-        super().__init__(net, calendars, skill, max_cal)
-        self.rng = rng
-        self.w_fair = w_fair
-        self.progress_reward = progress_reward   # throughput incentive: allocating beats postponing
-        self.trajectory = []      # (X, action, hidden, probs, reward)
-
-    def reset(self):
-        self.trajectory = []
-
-    def pick(self, candidates, context=None):
-        if not candidates:
-            return None
-        cands = sorted(candidates)
-        event = getattr(context, "event", None) if context else None
-        activity = getattr(event, "activity", None)
-        load = context.load if context is not None else {}
-        n_res = len(self.calendars) or 1
-        busy_fraction = len(getattr(context, "busy", ())) / n_res if context is not None else 0.0
-        X = build_features(cands, activity, load, self.calendars, self.skill, self.max_cal, busy_fraction)
-        p, H = self.net.forward(X)
-        a = int(self.rng.choice(len(p), p=p))      # sample (exploration during training)
-        if a == len(cands):                        # postpone -> core suspends/retries later
-            r = -0.5
-            chosen = None
-        else:
-            chosen = cands[a]
-            cf = dict(load); cf[chosen] = cf.get(chosen, 0) + 1   # counterfactual allocation count
-            # progress (throughput) minus a DENSE scale-invariant fairness penalty on the count
-            # Gini (bounded [0,1], does not vanish at scale like the old telescoping delta did)
-            r = self.progress_reward - self.w_fair * _gini(cf.values())
-        self.trajectory.append((X, a, H, p, r))
-        return chosen

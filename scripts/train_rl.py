@@ -1,8 +1,6 @@
-# 1.1 (Part 2) advanced — train the RL allocation policy (offline) and compare.
+# 1.1 (Part 2) advanced: train the RL allocation policy (offline) and compare.
 
-# Reproducible offline step: builds the standalone case-based environment from the
-# resource artifacts + real log, trains the REINFORCE policy (with a postpone
-# action), evaluates it against random, round-robin, shortest-queue
+# Reproducible offline step: builds the standalone environment, trains the REINFORCE policy and evaluates it against the baselines.
 
 from __future__ import annotations
 
@@ -52,8 +50,26 @@ def evaluate(cfg, policy, episodes=25, seed0=5000):
     return np.mean(cts), np.mean(ginis), np.mean(rets)
 
 
+def _build_cfg():
+    # Prefer the fully faithful engines. If the ProcessTimeEngine pickle cannot be unpickled here
+    # (fitted with an older scikit-learn), fall back to real arrival engine, per-activity median
+    # processing and BPMN-valid case pool. Keeps the standalone env runnable without the 1.3 pickle.
+    slim = load_slim_log()
+    try:
+        return build_env_config(slim)
+    except Exception as e:
+        print(f"[warn] faithful ProcessTimeEngine unavailable ({e.__class__.__name__}); "
+              f"using arrival engine + per-activity median processing + BPMN case pool.")
+        from arrival_engine import ArrivalEngine
+        from optimization.environment import build_case_pool
+        cfg = build_env_config(slim, faithful=False)
+        cfg["arrival"] = ArrivalEngine(slim)
+        cfg["case_pool"] = build_case_pool(2000, 0)
+        return cfg
+
+
 def main():
-    cfg = build_env_config(load_slim_log())
+    cfg = _build_cfg()
     print(f"env: {len(cfg['activity_mix'])} activities, {len(cfg['calendars'])} resources")
 
     net, _ = train(cfg, episodes=EPISODES, hidden=24, lr=0.05,
@@ -65,7 +81,7 @@ def main():
         ct, g, ret = evaluate(cfg, pol)
         rows.append({"method": name, "cycle_time_h": round(ct, 2), "load_gini": round(g, 3)})
     df = pd.DataFrame(rows)
-    # disclosed, equal-weight multi-objective score (both normalized by their max
+    # Disclosed equal-weight multi-objective score, both normalized by their max.
     # All methods scored identically on the SAME objective.
     df["combined"] = (0.5 * df.cycle_time_h / df.cycle_time_h.max()
                       + 0.5 * df.load_gini / df.load_gini.max()).round(3)

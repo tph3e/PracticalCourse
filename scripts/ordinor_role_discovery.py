@@ -1,4 +1,4 @@
-# 1.7 (Part 2) advanced — role discovery with OrdinoR proper (reference: Gyunam Park et al. Paper)
+# 1.7 (Part 1) advanced: role discovery with OrdinoR proper (reference: Yang et al. 2022, OrdinoR)
 
 from __future__ import annotations
 
@@ -19,9 +19,8 @@ N_GROUPS = 14  # comparable to the 14 roles found in the first-assignment analys
 
 def main() -> None:
     full = pd.read_parquet(SLIM)
-    # floor: actual performers per activity over ALL lifecycle events, so every
-    # activity (incl. the few without 'complete' events) stays covered and the
-    # role model never permits fewer resources than were observed.
+    # floor: actual performers per activity over ALL lifecycle events (incl. the few
+    # without 'complete' events), so the role model never permits fewer than observed.
     floor = (
         full[["concept:name", "org:resource"]]
         .dropna()

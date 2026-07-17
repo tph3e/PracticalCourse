@@ -1,8 +1,7 @@
-# 1.1 (Part 2) advanced — PPO allocation policy (Middelhuis et al. (2025) Paper, isolated venv).
-
-# This is the state-of-the-art variant: a gymnasium environment with a fixed action
-# space over all resources + a postpone action, infeasible actions removed by an
-# action mask, trained with MaskablePPO (sb3-contrib).
+# 1.1 (Part 2) advanced: paper-faithful PPO allocation policy (Middelhuis et al. 2025), trained
+# with MaskablePPO (sb3-contrib) on a discrete-event BPIC-17 simulation (state 2|R|+|A|, action
+# |R|*|A|+1 with masking, cycle-time reward plus a potential-based load-Gini fairness shaping).
+# Deployed via optimization.ppo_agent.PPOAllocation onto the integrated SimulationEngineCore.
 
 from __future__ import annotations
 
@@ -17,7 +16,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from sb3_contrib import MaskablePPO
-from sb3_contrib.common.maskable.utils import get_action_masks
+from stable_baselines3.common.callbacks import BaseCallback
 
 from resources.log_loader import load_slim_log
 from optimization.environment import (
@@ -26,13 +25,11 @@ from optimization.environment import (
 from optimization.metrics import gini
 
 
-W_FAIR = 5.0  # weight balancing the (telescoped) fairness objective vs. the CT reward
-
-
 class GymAllocationEnv(gym.Env):
-    def __init__(self, cfg, max_steps=600, mean_interarrival_s=1000.0,  # calibrated to real ~1002 s
+    # Paper-faithful MDP (state 2R+A, action R*A+1 with masking, cycle-time reward).
+    def __init__(self, cfg, max_steps=800, mean_interarrival_s=1000.0,  # calibrated to real ~1002 s
                  min_case_len=8, max_case_len=21, max_postpone=3, ct_scale_s=3600.0, seed=0,
-                 interarrival_scale=1.0):
+                 interarrival_scale=1.0, w_fair=1.0):
         super().__init__()
         self.permitted = {a: list(rs) for a, rs in cfg["permitted"].items()}
         self.calendars = cfg["calendars"]
@@ -57,19 +54,27 @@ class GymAllocationEnv(gym.Env):
         self.max_case_len = max_case_len
         self.max_postpone = max_postpone
         self.ct_scale_s = ct_scale_s
+        self.w_fair = w_fair
         self._seed = seed
 
-        self.action_space = spaces.Discrete(self.R + 1)              # resource i, or postpone (=R)
-        self.observation_space = spaces.Box(0.0, 1.0, shape=(3 * self.R + self.A + 1,), dtype=np.float32)
+        # action = resource i -> activity j  (index i*A + j), or postpone (index R*A)
+        self.action_space = spaces.Discrete(self.R * self.A + 1)
+        # state = delta (R) | eta (R) | kappa (A)
+        self.observation_space = spaces.Box(0.0, 1.0, shape=(2 * self.R + self.A,), dtype=np.float32)
 
+    # event-driven dynamics
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
         self.rng = np.random.default_rng(self._seed if seed is None else seed)
         self.t = 0.0; self.step_i = 0; self._seq = 0
         self.evq = []; self.busy_until = {}; self.load = {r: 0.0 for r in self.resources}
-        self.alloc_count = {r: 0 for r in self.resources}   # (a) inference-side load signal (count)
+        self.alloc_count = {r: 0 for r in self.resources}   # inference-side load signal (count)
+        self.busy_activity = {}                             # resource -> activity it is executing (eta)
         self.ready = deque(); self.cases = {}; self.case_counter = 0
         self.completed_cts = []
+        self.postpones = 0
+        self._pending = 0.0
+        self._decision = None
         self._push(0.0, "ARRIVAL", None)
         self._advance()
         return self._obs(), {}
@@ -88,6 +93,8 @@ class GymAllocationEnv(gym.Env):
 
     def _process_event(self):
         t, _, kind, payload = heapq.heappop(self.evq)
+        # cycle-time reward: penalize time-in-system integrated over active cases (telescopes to -CT)
+        self._pending += -(t - self.t) * len(self.cases) / self.ct_scale_s
         self.t = t
         if kind == "ARRIVAL":
             cid = self.case_counter; self.case_counter += 1
@@ -103,6 +110,7 @@ class GymAllocationEnv(gym.Env):
             self._push(t + gap, "ARRIVAL", None)
         elif kind == "COMPLETE":
             cid, r = payload
+            self.busy_activity.pop(r, None)
             case = self.cases.get(cid)
             if case is None:
                 return
@@ -110,10 +118,8 @@ class GymAllocationEnv(gym.Env):
             case["idx"] += 1
             if case["idx"] >= len(case["acts"]):
                 ct = t - case["start"]; self.completed_cts.append(ct)
-                self._pending += 1.0 / (ct / self.ct_scale_s + 1.0)
                 del self.cases[cid]
             else:
-                case["postpone"] = 0
                 wait = sample_waiting(self.proc, completed_act, r)   # 2B
                 if wait > 0:
                     self._push(t + wait, "READY", cid)
@@ -125,6 +131,8 @@ class GymAllocationEnv(gym.Env):
                 self.ready.append(cid)
 
     def _current(self):
+        # first ready-unassigned case that has at least one feasible resource (defines that a
+        # decision exists). Also the FIFO task the heuristic baselines serve.
         for cid in list(self.ready):
             act = self.cases[cid]["acts"][self.cases[cid]["idx"]]
             cands = self._candidates(act)
@@ -133,71 +141,127 @@ class GymAllocationEnv(gym.Env):
         return None
 
     def _advance(self):
-        self._cur = None
+        # roll the simulation forward until at least one feasible (r,a) assignment exists.
         while self.step_i < self.max_steps:
             cur = self._current()
             if cur is not None:
-                self._cur = cur; return
+                self._decision = cur
+                return
             if not self.evq:
+                self._decision = None
                 return
             self._process_event()
+        self._decision = None
 
+    def _pick_ready_case(self, activity):
+        # FIFO among ready cases whose current activity is `activity` (instances are interchangeable).
+        for cid in self.ready:
+            if self.cases[cid]["acts"][self.cases[cid]["idx"]] == activity:
+                return cid
+        return None
+
+    def _assign(self, r, a, cid):
+        proc = sample_processing(self.proc, self.skill, self.base_proc_s, a, r)  # 2B
+        self.busy_until[r] = self.t + proc
+        self.load[r] += proc
+        self.alloc_count[r] += 1
+        self.busy_activity[r] = a
+        if cid in self.ready:
+            self.ready.remove(cid)
+        self._push(self.t + proc, "COMPLETE", (cid, r))
+
+    def _episode_done(self):
+        return self.step_i >= self.max_steps or (self._decision is None and not self.evq)
+
+    # observation & mask
     def _obs(self):
-        obs = np.zeros(3 * self.R + self.A + 1, dtype=np.float32)
-        if self._cur is None:
-            return obs
-        cid, act, cands = self._cur
-        # (a) load feature = allocation count (matches ResourceEngine.load at inference)
-        max_count = (max(self.alloc_count.values()) if self.alloc_count else 0) or 1
-        skill_a = self.skill.get(act, {})
+        R, A = self.R, self.A
+        obs = np.zeros(2 * R + A, dtype=np.float32)
+        t = self.t
         for r in self.resources:
             i = self.res_index[r]
-            obs[i] = self.alloc_count[r] / max_count
-            obs[self.R + i] = 1.0 if self._available_now(r) else 0.0
-            obs[2 * self.R + i] = skill_a.get(r, 0.0)
-        obs[3 * self.R + self.act_index[act]] = 1.0
-        busy = sum(1 for r in self.resources if self.busy_until.get(r, 0.0) > self.t)
-        obs[3 * self.R + self.A] = busy / self.R          # congestion (busy fraction)
+            if self.busy_until.get(r, 0.0) > t:               # delta: busy
+                obs[i] = 1.0
+                ba = self.busy_activity.get(r)                # eta: which activity
+                if ba in self.act_index:
+                    obs[R + i] = (self.act_index[ba] + 1) / A
+        counts = {}                                           # kappa: unassigned queue per activity
+        for cid in self.ready:
+            a = self.cases[cid]["acts"][self.cases[cid]["idx"]]
+            counts[a] = counts.get(a, 0) + 1
+        for a, c in counts.items():
+            j = self.act_index.get(a)
+            if j is not None:
+                obs[2 * R + j] = min(c / 100.0, 1.0)
         return obs
 
     def action_masks(self):
-        mask = np.zeros(self.R + 1, dtype=bool)
-        mask[self.R] = True  # postpone always feasible
-        if self._cur is not None:
-            for r in self._cur[2]:
-                mask[self.res_index[r]] = True
+        R, A = self.R, self.A
+        mask = np.zeros(R * A + 1, dtype=bool)
+        mask[R * A] = True                                    # postpone always feasible
+        ready_acts = set()
+        for cid in self.ready:
+            ready_acts.add(self.cases[cid]["acts"][self.cases[cid]["idx"]])
+        for a in ready_acts:
+            j = self.act_index.get(a)
+            if j is None:
+                continue
+            for r in self._candidates(a):
+                mask[self.res_index[r] * A + j] = True
         return mask
 
+    # step
     def step(self, action):
         self._pending = 0.0
-        cid, act, cands = self._cur
-        if action == self.R:  # postpone
-            self.cases[cid]["postpone"] += 1
-            if self.cases[cid]["postpone"] > self.max_postpone:
-                action = self.res_index[min(cands, key=lambda r: self.load[r])]
-            else:
-                self.ready.remove(cid); self.ready.append(cid)
-                self._pending -= 0.5  # strong cost: postpone is not a way to dodge the fairness penalty
-                if self.evq:
-                    self._process_event()
-                self.step_i += 1
-                self._advance()
-                done = self._cur is None
-                return self._obs(), self._pending, done, False, {}
-        r = self.resources[action]
-        proc = sample_processing(self.proc, self.skill, self.base_proc_s, act, r)  # 2B
+        R, A = self.R, self.A
+
+        if action == R * A:                                   # postpone
+            self.postpones += 1
+            if self._decision is not None and self.postpones > self.max_postpone:
+                cid, a, cands = self._decision                # safeguard: force least-loaded assignment
+                r = min(cands, key=lambda r: self.load[r])
+                self._assign(r, a, cid)
+                self.postpones = 0
+            elif self.evq:
+                self._process_event()                         # advance time so the state changes
+            self.step_i += 1
+            self._advance()
+            return self._obs(), self._pending, self._episode_done(), False, {"postpone": True}
+
+        i, j = divmod(action, A)
+        r = self.resources[i]; a = self.activities[j]
+        cid = self._pick_ready_case(a)
+        if cid is None or r not in self._candidates(a):       # infeasible (mask should prevent this)
+            self.step_i += 1
+            self._advance()
+            return self._obs(), self._pending, self._episode_done(), False, {"noop": True}
+
         gini_before = gini(self.load.values())
-        self.busy_until[r] = self.t + proc; self.load[r] += proc
-        self.alloc_count[r] += 1                      # (a) count = inference-side load signal
-        self.ready.remove(cid)
-        self._push(self.t + proc, "COMPLETE", (cid, r))
-        # faithful fairness shaping (potential-based on Gini) 
-        # CT objective via the per-case completion reward. See environment.py for the rationale.
-        self._pending += W_FAIR * (gini_before - gini(self.load.values()))
+        self._assign(r, a, cid)
+        self.postpones = 0
+        self._pending += self.w_fair * (gini_before - gini(self.load.values()))  # potential-based shaping
         self.step_i += 1
         self._advance()
-        done = self._cur is None
-        return self._obs(), self._pending, done, False, {}
+        return self._obs(), self._pending, self._episode_done(), False, {"resource": r, "activity": a}
+
+
+class CurveCallback(BaseCallback):
+    # Record the true MaskablePPO episode-return curve during the training run.
+    def __init__(self):
+        super().__init__()
+        self.ep_returns = []
+        self._cur = 0.0
+
+    def _on_step(self) -> bool:
+        self._cur += float(self.locals["rewards"][0])
+        if bool(self.locals["dones"][0]):
+            self.ep_returns.append(self._cur)
+            self._cur = 0.0
+        return True
+
+
+def _feasible_pairs_present(env):
+    return env._decision is not None
 
 
 def evaluate(make_env, select, episodes=25, seed0=5000):
@@ -205,7 +269,7 @@ def evaluate(make_env, select, episodes=25, seed0=5000):
     for ep in range(episodes):
         env = make_env(seed0 + ep)
         obs, _ = env.reset(seed=seed0 + ep)
-        while env._cur is not None:
+        while not env._episode_done():
             a = select(env, obs)
             obs, r, done, trunc, _ = env.step(a)
             if done:
@@ -213,44 +277,93 @@ def evaluate(make_env, select, episodes=25, seed0=5000):
         if env.completed_cts:
             cts.append(np.mean(env.completed_cts) / 3600.0)
         ginis.append(gini([v for v in env.load.values() if v > 0]))
-    return float(np.mean(cts)), float(np.mean(ginis))
+    return float(np.mean(cts)) if cts else float("nan"), float(np.mean(ginis))
+
+
+def _build_cfg():
+    # Calibrated DES config: prefer the faithful engines, but if the committed ProcessTimeEngine
+    # pickle cannot be unpickled here (fitted with an older scikit-learn) fall back to the arrival
+    # engine plus per-activity median processing and BPMN-valid case sequences.
+    slim = load_slim_log()
+    try:
+        return build_env_config(slim)                      # faithful=True
+    except Exception as e:
+        print(f"[warn] faithful ProcessTimeEngine unavailable ({e.__class__.__name__}); "
+              f"using arrival engine + per-activity median processing + BPMN case pool.")
+        from arrival_engine import ArrivalEngine
+        from optimization.environment import build_case_pool
+        cfg = build_env_config(slim, faithful=False)
+        cfg["arrival"] = ArrivalEngine(slim)               # real interarrival distribution
+        cfg["case_pool"] = build_case_pool(2000, 0)        # BPMN-valid case sequences
+        return cfg
 
 
 def main():
-    cfg = build_env_config(load_slim_log())
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import pandas as pd
+
+    timesteps = int(os.environ.get("PPO_TIMESTEPS", "600000"))
+
+    cfg = _build_cfg()
     make = lambda s: GymAllocationEnv(cfg, seed=s)
     env = make(0)
-    print(f"PPO env: {env.R} resources, {env.A} activities, obs dim {env.observation_space.shape[0]}")
+    print(f"PPO env (paper MDP): {env.R} resources, {env.A} activities, "
+          f"obs dim {env.observation_space.shape[0]} (=2R+A), "
+          f"action dim {env.action_space.n} (=R*A+1)")
 
     model = MaskablePPO("MlpPolicy", env, n_steps=2048, batch_size=256, gamma=0.99,
-                        policy_kwargs=dict(net_arch=[64, 64]), seed=1, verbose=0)
-    model.learn(total_timesteps=600_000)
+                        policy_kwargs=dict(net_arch=[128, 128]), seed=1, verbose=0)
+    curve = CurveCallback()
+    model.learn(total_timesteps=timesteps, callback=curve)
+    os.makedirs("results", exist_ok=True)
     model.save("results/ppo_model")
+
+    # learning curve from the real run
+    if curve.ep_returns:
+        h = np.array(curve.ep_returns)
+        w = max(1, min(20, len(h) // 5))
+        sm = np.convolve(h, np.ones(w) / w, mode="valid")
+        fig, ax = plt.subplots(figsize=(6, 3))
+        ax.plot(h, alpha=0.3, label="episode return")
+        ax.plot(range(len(sm)), sm, label=f"{w}-episode moving avg")
+        ax.set_xlabel("episode"); ax.set_ylabel("return (cycle-time reward)")
+        ax.set_title("MaskablePPO learning curve"); ax.legend()
+        fig.tight_layout(); fig.savefig("results/rl_learning_curve.png", dpi=120)
+        print(f"saved -> results/rl_learning_curve.png ({len(h)} episodes)")
 
     rng = np.random.default_rng(7)
     rr = {"c": 0}
 
-    def cand_idx(env):
-        return [env.res_index[r] for r in env._cur[2]]
+    def _decision(env):
+        return env._decision  # (cid, activity, candidates)
+
+    def _act(env, r, a):
+        return env.res_index[r] * env.A + env.act_index[a]
 
     def sel_random(env, obs):
-        return int(rng.choice(cand_idx(env)))
+        cid, a, cands = _decision(env)
+        return _act(env, cands[int(rng.integers(len(cands)))], a)
 
     def sel_rr(env, obs):
-        ci = cand_idx(env); a = ci[rr["c"] % len(ci)]; rr["c"] += 1; return a
+        cid, a, cands = _decision(env)
+        cs = sorted(cands); r = cs[rr["c"] % len(cs)]; rr["c"] += 1
+        return _act(env, r, a)
 
     def sel_sq(env, obs):
-        ci = env._cur[2]; return env.res_index[min(ci, key=lambda r: env.load[r])]
+        cid, a, cands = _decision(env)
+        return _act(env, min(cands, key=lambda r: env.load[r]), a)
 
     def sel_exp(env, obs):
-        ci = env._cur[2]; act = env._cur[1]
-        return env.res_index[max(ci, key=lambda r: env.skill.get(act, {}).get(r, 0.0))]
+        cid, a, cands = _decision(env)
+        sk = env.skill.get(a, {})
+        return _act(env, max(cands, key=lambda r: sk.get(r, 0.0)), a)
 
     def sel_ppo(env, obs):
-        a, _ = model.predict(obs, action_masks=env.action_masks(), deterministic=True)
-        return int(a)
+        act, _ = model.predict(obs, action_masks=env.action_masks(), deterministic=True)
+        return int(np.asarray(act).flatten()[0])
 
-    import pandas as pd
     rows = []
     for name, sel in [("random", sel_random), ("round-robin", sel_rr),
                       ("shortest-queue", sel_sq), ("most-experienced", sel_exp),

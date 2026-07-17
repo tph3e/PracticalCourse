@@ -1,10 +1,6 @@
-# 1.2 (Part 2) F bridge — cross-method allocation comparison on the INTEGRATED simulator.
-
-# Runs the team simulation core once per allocation strategy on an identical seed and
-# window, so only the 1.8 pick() strategy differs (arrivals, case data and processing
-# times are the same stream across methods). Each per-method output log is scored with
-# the same optimization.metrics.compare_on_sim, giving the honest RL-vs-baseline numbers
-# for the D evaluation (Aldo's section) and the compare_on_sim data F (K3) consumes.
+# 1.2 (Part 2): cross-method allocation comparison on the INTEGRATED simulator.
+# Runs the sim core once per strategy on an identical seed and window so only pick() differs,
+# then scores each log with optimization.metrics.compare_on_sim.
 
 from __future__ import annotations
 
@@ -35,35 +31,25 @@ PPO_MODEL = os.environ.get("PPO_MODEL")  # set (e.g. results/ppo_model) to add P
 
 
 def _rl_label(path: str) -> str:
-    # The row name must follow the policy that is actually loaded, otherwise the output CSV lies.
+    # The row name must follow the policy actually loaded, otherwise the output CSV lies.
+    # Default is the REINFORCE baseline. MaskablePPO is added separately via PPO_MODEL.
     if os.environ.get("RL_LABEL"):
         return os.environ["RL_LABEL"]
-    base = os.path.basename(path)
-    if base == "rl_policy_sim_ppo.json":
-        return "PPO on simulator"
-    if base == "rl_policy_sim.json":
-        return "RL (sim-in-the-loop)"
     return "RL (REINFORCE)"
 
 
 RL_LABEL = _rl_label(RL_POLICY)
 OUT_CSV = "results/sim_comparison.csv"
 # Load knob for congestion experiments: scales every interarrival gap (<1 = more load).
-# 1.0 = real BPIC arrival rate. A core-level knob would be K1's; here a driver monkeypatch.
+# 1.0 = real BPIC arrival rate. A core-level knob would be K1's. Here a driver monkeypatch.
 ARRIVAL_SCALE = float(os.environ.get("ARRIVAL_SCALE", "1.0"))
 
-# TEMPORARY stand-in, NOT part of the deliverable. It compensates for two bugs in
-# K1's ProcessTimeEngine (task 1.3) so the allocation comparison can run on the sim:
-#   (1) UNITS: the basic path wraps fitted values as bare timedelta(x) = DAYS, but the
-#       models are fit in SECONDS (the advanced path uses timedelta(seconds=...)). A
-#       ~10 h duration comes out as ~105 years, so any case that hits a real model
-#       schedules its END decades out and never completes in-window.
-#   (2) MISS -> 0: an (activity, resource) pair never seen in the real log returns
-#       timedelta(0). Under free Part-2 allocation ~98 % of pairs are unseen, so
-#       durations collapse to 0 and every timestamp coincides.
-# Here every (activity, kind) uses a seen per-activity model (representative resource)
-# read in the correct unit. Set to False once K1 fixes the engine (timedelta(seconds=)
-# + an activity-level fallback).
+# TEMPORARY stand-in, NOT part of the deliverable. Compensates for two K1 ProcessTimeEngine
+# bugs (task 1.3) so the comparison can run. (1) UNITS: the basic path misreads fitted SECONDS
+# as timedelta days, so durations blow up and cases never complete in-window. (2) MISS -> 0:
+# unseen (activity, resource) pairs return timedelta(0), collapsing durations. Here every
+# (activity, kind) uses a seen per-activity model read in the correct unit. Set False once
+# K1 fixes the engine.
 USE_ACTIVITY_FALLBACK = False
 _KEY_RE = re.compile(r"^(?P<act>.+)_(?P<res>User_\d+)_(?P<kind>processing|waiting)$")
 _MAX_DURATION_S = 24 * 3600.0            # clip pathological heavy-tail samples to 24 h

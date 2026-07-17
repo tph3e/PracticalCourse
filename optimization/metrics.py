@@ -1,10 +1,6 @@
-# 1.2 (basic) — evaluation metrics for resource allocation methods.
+# 1.2 (basic): evaluation metrics for resource allocation methods.
 
-# Three metrics, computed from an event-log DataFrame in the standard XES column
-# layout (works on both the simulation output log and the real BPIC-17 slim log):
-#   1. average cycle time        
-#   2. average resource occupation
-#   3. (weighted) resource fairness
+# Three metrics from a standard XES event-log DataFrame (simulator output or BPIC-17 slim log): average cycle time, average resource occupation and weighted resource fairness.
 
 
 
@@ -29,12 +25,10 @@ def activity_durations(log_df: pd.DataFrame) -> pd.DataFrame:
     df = log_df[[CASE, ACT, RES, TS, LC]].copy()
     df[TS] = pd.to_datetime(df[TS], utc=True)
 
-    # Work on an activity begins at a "start" event (direct allocation) or a
-    # "resume" event (allocation succeeded after a suspend). In the simulator log a
-    # suspended activity emits suspend -> resume -> complete with no "start", so
-    # pairing only start<->complete would drop every resumed instance. The resource
-    # is busy from the work-begin to the complete, the suspend->resume gap is
-    # waiting, not busy.
+    # Work begins at a "start" or "resume" event. In the simulator log a suspended
+    # activity emits suspend -> resume -> complete with no "start", so pairing only
+    # start<->complete would drop every resumed instance. The suspend->resume gap
+    # is waiting, not busy.
     s = df[df[LC].isin(["start", "resume"])].sort_values(TS).copy()
     c = df[df[LC] == "complete"].sort_values(TS).copy()
     s["occ"] = s.groupby([CASE, ACT]).cumcount()
@@ -185,8 +179,7 @@ def compute_all(log_df: pd.DataFrame, availability=None, window_s: float | None 
 
 def compare_on_sim(sim_logs: dict, availability=None) -> pd.DataFrame:
     # Cross-method comparison on the integrated simulator output (task F bridge).
-    # sim_logs: {method_name: simulator_output_log_df}. Runs the same compute_all
-    # on each per-method log, one table row per method.
+    # sim_logs: {method_name: simulator_output_log_df}, one table row per method.
     rows = []
     for method, slog in sim_logs.items():
         m = compute_all(slog, availability=availability)

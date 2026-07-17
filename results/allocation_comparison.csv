@@ -1,6 +1,6 @@
 method,cycle_time_h,load_gini,combined
-random,0.98,0.471,0.821
-round-robin,1.12,0.477,0.886
-shortest-queue,1.07,0.486,0.872
-most-experienced,1.16,0.591,1.0
-RL (REINFORCE),0.91,0.542,0.851
+random,4.92,0.293,0.869
+round-robin,5.14,0.294,0.892
+shortest-queue,4.97,0.173,0.714
+most-experienced,4.77,0.375,0.964
+RL (REINFORCE),4.97,0.171,0.711

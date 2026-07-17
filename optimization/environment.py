@@ -1,12 +1,8 @@
-# 1.1 advanced — standalone case-based allocation environment for RL.
+# 1.1 advanced: standalone case-based allocation environment for RL.
 
-# A compact event-driven environment that captures the resource-allocation decision
-# with the mechanics that matter for the objective, aligned with Middelhuis et al.
-# (2025)
-
-# Built from the resource artifacts (1.6 calendars, 1.7 roles) and per-activity
-# statistics from the real BPIC-17 log, so the agent can be trained without the
-# integrated team simulator. 
+# Compact event-driven model of the resource-allocation decision, aligned with Middelhuis
+# et al. (2025). Built from resource artifacts (1.6 calendars, 1.7 roles) and per-activity
+# BPIC-17 statistics, so the agent trains without the integrated team simulator.
 
 from __future__ import annotations
 
@@ -25,13 +21,11 @@ W_FAIR = 5.0  # weight balancing the fairness objective against the CT reward
 
 
 def build_features(candidates, activity, load, calendars, skill, max_cal, busy_fraction=0.0):
-    # Feature matrix [n_candidates + 1, N_FEATURES]; last row = postpone action.
+    # Feature matrix [n_candidates + 1, N_FEATURES]. Last row = postpone action.
 
-    # Shared by the env (training) and RLAllocation (inference) so the policy sees
-    # identical inputs. busy_fraction (share of resources currently occupied) is a
-    # congestion signal, reconstructable at runtime from the AllocationContext. The
-    # postpone row summarizes the best available alternative, so the agent can learn
-    # to wait when candidates are poor or the system is congested.
+    # Shared by the env (training) and RLAllocation (inference) so the policy sees identical
+    # inputs. busy_fraction is a congestion signal. The postpone row summarizes the best
+    # available alternative, so the agent can learn to wait when candidates are poor.
     
     n = len(candidates)
     feats = np.zeros((n + 1, N_FEATURES))
@@ -50,7 +44,7 @@ def build_features(candidates, activity, load, calendars, skill, max_cal, busy_f
     return feats
 
 
-# ---- faithful dynamics helpers (2A/2B), shared by AllocationEnv and GymAllocationEnv ----
+# faithful dynamics helpers (2A/2B), shared by AllocationEnv and GymAllocationEnv
 
 def sample_interarrival(arrival, rng, t, mean_interarrival_s, scale=1.0):
     # 2B: real ArrivalEngine gap if available, else the exponential fallback. scale = load knob.
@@ -75,8 +69,7 @@ def sample_waiting(proc, act, r):
 
 def build_case_pool(n=2000, seed=0, cap=200):
     # 2A: pre-generate valid linear activity sequences via the SAME mechanism the eval
-    # simulator uses (BPMN v4 model + CompositeBranchingEngine). Parallel branches are
-    # linearised (one successor chosen per step). Returns a list of activity-name lists.
+    # simulator uses (BPMN v4 model + CompositeBranchingEngine). Parallel branches are linearised.
     from datetime import datetime
     import random as _random
     from BPMN_engine import BPMNEngine
@@ -170,8 +163,7 @@ class AllocationEnv:
         self.evq = []
         self.busy_until = {}
         self.load = {r: 0.0 for r in self.resources}        # busy seconds (reward/eval objective)
-        self.alloc_count = {r: 0 for r in self.resources}   # (a) allocation count = the feature the
-        #                                                     policy also sees at inference (ResourceEngine.load)
+        self.alloc_count = {r: 0 for r in self.resources}   # allocation count = inference-side load signal (ResourceEngine.load)
         self.ready = deque()
         self.cases = {}
         self.case_counter = 0
@@ -278,8 +270,7 @@ class AllocationEnv:
             else:
                 self.ready.remove(cid)
                 self.ready.append(cid)              # rotate to back
-                self._pending_reward -= 0.5          # strong cost: postpone must not be a way to dodge
-                                                      # the overload penalty (that collapsed training)
+                self._pending_reward -= 0.5          # strong cost: postpone must not dodge the overload penalty (collapsed training)
                 if self.evq:
                     self._process_event()            # advance time so state changes
                 self.step_i += 1
@@ -295,8 +286,8 @@ class AllocationEnv:
         self.ready.remove(cid)                       # in progress
         self._push(self.t + proc, "COMPLETE", (cid, r))
 
-        # Telescoping fairness potential on the load Gini (works at the 600-step standalone scale;
-        # the dense/scale-invariant variant is applied in 2C where episodes are ~40k steps).
+        # Telescoping fairness potential on the load Gini, for the 600-step standalone scale.
+        # The dense/scale-invariant variant is applied in 2C where episodes are ~40k steps.
         self._pending_reward += W_FAIR * (gini_before - _gini(self.load.values()))
         self.step_i += 1
         obs = self._advance_to_decision()

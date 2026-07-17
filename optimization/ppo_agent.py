@@ -1,7 +1,11 @@
-# Option B — deploy a MaskablePPO policy (trained on GymAllocationEnv, scripts/train_ppo.py) as a
-# swappable allocation strategy on the INTEGRATED simulator. It rebuilds the exact GymAllocationEnv
-# observation (3R + A + 1) and action mask from the AllocationContext, so the policy sees identical
-# inputs at training and at inference. sb3 is imported lazily (only needed to load/predict).
+# 1.1 (advanced)
+# 
+# Deploy the paper-faithful MaskablePPO policy (trained on GymAllocationEnv, scripts/train_ppo.py)
+# as a swappable allocation strategy on the integrated simulator.
+#
+# Training MDP: global (resource, activity)-pair action space, 2R+A state (delta | eta | kappa).
+# 
+# sb3 is imported lazily.
 
 from __future__ import annotations
 
@@ -14,7 +18,7 @@ class PPOAllocation(AllocationStrategy):
     def __init__(self, model, calendars: dict, skill: dict, activity_mix: dict):
         self.model = model
         self.calendars = calendars
-        self.skill = skill
+        self.skill = skill                       # kept for signature compatibility (paper obs has no skill)
         self.resources = sorted(calendars.keys())
         self.res_index = {r: i for i, r in enumerate(self.resources)}
         self.activities = list(activity_mix.keys())
@@ -22,46 +26,45 @@ class PPOAllocation(AllocationStrategy):
         self.R = len(self.resources)
         self.A = len(self.activities)
 
-    def _available_now(self, r, time) -> bool:
-        # Same semantics as GymAllocationEnv._available_now, but from the real datetime.
-        cal = self.calendars.get(r)
-        return cal is None or (time.weekday(), time.hour) in cal
-
     def pick(self, candidates, context=None):
         if not candidates or context is None:
             return None
         event = getattr(context, "event", None)
         act = getattr(event, "activity", None)
-        time = context.time
-        load = context.load or {}                 # ResourceEngine.load = cumulative allocation count
+        if act not in self.act_index:
+            return None
         busy = getattr(context, "busy", ()) or ()
+        busy_activity = getattr(context, "busy_activity", {}) or {}
+        R, A = self.R, self.A
 
-        # rebuild GymAllocationEnv._obs exactly (load feature = alloc count, per (a))
-        obs = np.zeros(3 * self.R + self.A + 1, dtype=np.float32)
-        max_count = (max(load.values()) if load else 0) or 1
-        skill_a = self.skill.get(act, {})
-        for r in self.resources:
-            i = self.res_index[r]
-            obs[i] = load.get(r, 0) / max_count
-            obs[self.R + i] = 1.0 if self._available_now(r, time) else 0.0
-            obs[2 * self.R + i] = skill_a.get(r, 0.0)
-        if act in self.act_index:
-            obs[3 * self.R + self.act_index[act]] = 1.0
-        obs[3 * self.R + self.A] = (len(busy) / self.R) if self.R else 0.0
+        # rebuild the paper state 2R+A = delta | eta | kappa
+        obs = np.zeros(2 * R + A, dtype=np.float32)
+        for r in busy:
+            i = self.res_index.get(r)
+            if i is None:
+                continue
+            obs[i] = 1.0                                    # delta: busy
+            ba = busy_activity.get(r)                       # eta: which activity
+            if ba in self.act_index:
+                obs[R + i] = (self.act_index[ba] + 1) / A
+        # kappa reduced: only the current activity's single locally-known waiting instance
+        obs[2 * R + self.act_index[act]] = min(1 / 100.0, 1.0)
 
-        # action mask: candidate resource indices + postpone (index R)
-        mask = np.zeros(self.R + 1, dtype=bool)
-        mask[self.R] = True
+        # per-task reduction: mask to (candidate resource, current activity) pairs + postpone
+        j = self.act_index[act]
+        mask = np.zeros(R * A + 1, dtype=bool)
+        mask[R * A] = True                                  # postpone
         for r in candidates:
-            j = self.res_index.get(r)
-            if j is not None:
-                mask[j] = True
+            k = self.res_index.get(r)
+            if k is not None:
+                mask[k * A + j] = True
 
         action, _ = self.model.predict(obs, action_masks=mask, deterministic=True)
         a = int(np.asarray(action).flatten()[0])
-        if a == self.R:                           # postpone -> core suspends/retries
+        if a == R * A:                                      # postpone -> core suspends/retries
             return None
-        chosen = self.resources[a]
+        i = a // A
+        chosen = self.resources[i] if 0 <= i < R else None
         return chosen if chosen in candidates else None
 
     @classmethod

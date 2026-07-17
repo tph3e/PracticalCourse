@@ -1,4 +1,4 @@
-# 1.7 advanced (Part 1) — OrdinoR-style role discovery (fallback implementation)
+# 1.7 advanced (Part 1): OrdinoR-style role discovery (fallback implementation)
 
 from __future__ import annotations
 
@@ -32,9 +32,8 @@ def discover_roles(
     k = min(n_groups, len(resources))
     labels = AgglomerativeClustering(n_clusters=k).fit_predict(profiles.values)
 
-    # floor: a resource that demonstrably performed an activity is always
-    # permitted it, so the role model never drops below observed reality (no
-    # activity ends up with zero permitted resources -> no deadlock). Roles only
+    # floor: a resource that performed an activity is always permitted it, so no
+    # activity ends up with zero permitted resources (no deadlock). Roles only
     # generalize beyond this floor to other members of the same group.
     activity_to_resources: dict[str, set[str]] = {
         a: set(counts.index[counts[a] > 0].astype(str)) for a in activities

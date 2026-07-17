@@ -1,6 +1,4 @@
-# Slim log cache for the resource models (offline preprocessing).
-
-# Parsing the 578 MB BPIC-17 XES takes minutes, so parse it once and cache a slim parquet 
+# Slim log cache for the resource models. The 578 MB BPIC-17 XES takes minutes to parse, so parse once and cache a slim parquet.
 
 from __future__ import annotations
 
@@ -8,7 +6,7 @@ import os
 
 import pandas as pd
 
-# columns the resource models need (1.6 timestamps, 1.7 resource–activity, lifecycle)
+# columns the resource models need (1.6 timestamps, 1.7 resource-activity, lifecycle)
 SLIM_COLUMNS = [
     "case:concept:name",
     "concept:name",

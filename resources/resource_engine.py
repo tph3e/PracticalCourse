@@ -1,4 +1,4 @@
-# Facade the simulation core talks to. Orchestrates tasks 1.6–1.8 (Part 1 + Part 2).
+# Facade the simulation core talks to. Orchestrates tasks 1.6 to 1.8 (Part 1 + Part 2).
 
 from __future__ import annotations
 
@@ -16,6 +16,8 @@ class ResourceEngine:
         self.busy: set[str] = set()
         # activities allocated per resource (load signal for Part 2)
         self.load: dict[str, float] = {}
+        # activity each busy resource is currently executing (eta feature for the Part 2: Task 1.1 (advanced)  RL state)
+        self.busy_activity: dict[str, str] = {}
 
     def set_allocation(self, strategy) -> None:
         # Swap the 1.8 allocation strategy (Part 2: heuristics, batch, RL policy).
@@ -34,14 +36,18 @@ class ResourceEngine:
             event=event,
             busy=self.busy,
             load=self.load,
+            busy_activity=self.busy_activity,
         )
         chosen = self.allocation.pick(candidates, context)          # 1.8
         if chosen is None:
             return False
         self.busy.add(chosen)
         self.load[chosen] = self.load.get(chosen, 0) + 1
+        self.busy_activity[chosen] = getattr(event, "activity", None)  # eta
         event.resource = chosen
         return True
 
     def releaseResource(self, event) -> None:
-        self.busy.discard(getattr(event, "resource", None))
+        resource = getattr(event, "resource", None)
+        self.busy.discard(resource)
+        self.busy_activity.pop(resource, None)

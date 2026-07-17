@@ -11,13 +11,11 @@ from datetime import datetime
 class AllocationContext:
     # Runtime state handed to a strategy at an allocation decision point.
 
-    # Lets stateful / contextual strategies (round-robin, shortest-queue, the RL
-    # agent, early/late distribution) work through the same pick interface.
-
     time: datetime | None = None                          # current simulation time
     event: object = None                                  # event being allocated (activity, case, ...)
     busy: set[str] = field(default_factory=set)           # resources currently busy
     load: dict[str, float] = field(default_factory=dict)  # cumulative work per resource so far
+    busy_activity: dict[str, str] = field(default_factory=dict)  # resource -> activity it runs (eta, Part 2: Task 1.1 (advanced)  RL state)
 
 
 class AllocationStrategy:

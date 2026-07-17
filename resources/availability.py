@@ -48,7 +48,7 @@ class AvailabilityModel:
         resource_col: str = "org:resource",
         start_hour: int = 8,
         end_hour: int = 18,
-        working_weekdays: frozenset[int] = frozenset({0, 1, 2, 3, 4}),  # Mon–Fri
+        working_weekdays: frozenset[int] = frozenset({0, 1, 2, 3, 4}),  # Mon to Fri
         artifact_path: str | None = DEFAULT_ARTIFACT,
     ):
         self.start_hour = start_hour

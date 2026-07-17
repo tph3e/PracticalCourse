@@ -6,3 +6,16 @@ pyarrow
 scikit-learn
 scipy
 numpy
+
+# Task 1.7 advanced role discovery (OrdinoR, Yang et al. 2022). Run offline in a separate
+# environment to regenerate results/permissions_roles.json
+ordinor
+matplotlib
+
+# Deep RL for the Part 2, Task 1.1 (advanced) allocation policy (Middelhuis et al.).
+# kept in a separate venv (.venv-ppo) so the core simulator stays light.
+# Only scripts/train_ppo.py and optimization/ppo_agent.py import these.
+gymnasium
+stable-baselines3
+sb3-contrib
+torch
