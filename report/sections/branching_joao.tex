@@ -1,0 +1,62 @@
+\paragraph{Problem representation.}
+The simulator does not choose arbitrary activity labels at a decision point.
+The BPMN engine first converts the current case marking into executable
+\emph{transition candidates}. Each candidate contains the BPMN transition id,
+the visible activity label and the silent-transition path used to reach the
+visible transition. Branching is therefore constrained by the process model:
+every returned decision is filtered against the currently enabled BPMN
+candidates before it can be fired.
+
+\paragraph{Composite decision chain.}
+The final branching chain used in the evaluated simulator is
+\[
+    \text{Predictive} \rightarrow \text{Probability} \rightarrow \text{Random}.
+\]
+The corrected repository separates the leakage-free evaluation artifact from
+the full-log deployment artifact. The final optimized evaluation candidate is
+\texttt{composite\_branching\_evaluation\_train70\_rfopt\_v1.pkl}; the matching
+full-log artifact is retained only for deployment. Held-out claims and the
+candidate fixed replay use the evaluation-scoped artifact.
+This chain is the runtime policy, not the unit of the offline classifier score:
+the offline tables evaluate the predictive model separately, while the simulator
+uses the composite chain to remain robust whenever the ML prediction cannot be
+mapped to a currently enabled BPMN candidate.
+The predictive component is a Random-Forest next-activity classifier, following
+the ensemble-learning idea of Breiman~\cite{breiman2001randomforests} and the
+scikit-learn implementation interface~\cite{pedregosa2011scikit}. Its offline
+training examples are obtained by replaying the event log on
+\texttt{models/v4\_replay.bpmn}. A supervised row is emitted only after the
+observed current event has been synchronized and fired in the BPMN marking, the
+marking exposes multiple BPMN-valid next labels, and the observed next event is
+one of those enabled labels. The RF-optimized feature vector combines
+control-flow history (current and previous activity and prefix information),
+time/resource context and non-constant case attributes such as application
+type, loan goal and requested amount. At runtime, the classifier
+ranks possible next activities, but the selected label is accepted only if it is
+BPMN-valid for the current marking. The RF-optimized evaluation artifact keeps
+the non-constant runtime-equivalent features and drops constant counters from
+the candidate feature set. If no valid predictive label remains, the engine
+calls the probabilistic fallback. Therefore, the implementation satisfies the
+replay-based interpretation of the advanced branching requirement for the
+subset of event-log behavior that can be synchronized with the provided BPMN
+model; the remaining coverage is reported separately.
+
+The probabilistic component estimates empirical successor distributions from
+training data only. It first tries a state-conditioned distribution keyed by
+current activity, previous activity and coarse repetition counters. If that
+state has insufficient support, it falls back to the global distribution for the
+current activity and finally to a candidate-uniform BPMN-valid fallback. The
+final contribution therefore consists of a clean probabilistic baseline, a
+history-aware Random-Forest predictor, and a composite runtime chain that keeps
+all choices BPMN-valid.
+
+\paragraph{BPMN alignment.}
+The transition-aware integration separates event-log labels from BPMN transition
+ids. This matters because a label can be ambiguous or temporarily non-executable
+under the current marking. The BPMN engine exposes transition candidates rather
+than labels alone, and the integration records whether a historical or predicted
+activity can be synchronized with an identifiable transition. Consequently,
+next-label prediction, label-to-transition coverage and exact transition fire
+success are reported as separate quantities in Sec.~\ref{ssub:branching-eval};
+the latter is not treated as transition-classification accuracy because the log
+does not provide transition-ID ground truth.

@@ -1,3 +1,10 @@
+"""
+Controlled/synthetic sanity check; not the source of final quantitative claims.
+
+Final Part II-A claims come from
+joao/results/final_canonical_rfopt_candidate_20260717/fixed_replay.
+"""
+
 import sys
 from pathlib import Path
 

@@ -1,0 +1,80 @@
+[
+  {
+    "admitted": 12,
+    "censored": 0,
+    "completed": 12,
+    "cyclic": 0,
+    "deadlocked": 0,
+    "diagnostics": {
+      "ambiguous_legacy_label_rejections": 0,
+      "branch_invalid_predictions_rejected": 0,
+      "branch_predictions": 217,
+      "branch_transition_ambiguities": 0,
+      "diagnostic_cycle_guard_enabled": 0,
+      "exact_transition_fires": 229,
+      "legacy_label_fires": 0,
+      "reservation_decisions": 0,
+      "reservations_created": 0,
+      "resources_allocated": 229,
+      "resources_released": 229
+    },
+    "event_log_path": "joao/results/transition_aware_branching_20260715/smoke/round_robin_seed1_event_log.csv",
+    "events": 458,
+    "final_marking_rate": 1.0,
+    "runtime_seconds": 0.107,
+    "seed": 1,
+    "strategy": "round_robin"
+  },
+  {
+    "admitted": 12,
+    "censored": 0,
+    "completed": 12,
+    "cyclic": 0,
+    "deadlocked": 0,
+    "diagnostics": {
+      "ambiguous_legacy_label_rejections": 0,
+      "branch_invalid_predictions_rejected": 0,
+      "branch_predictions": 217,
+      "branch_transition_ambiguities": 0,
+      "diagnostic_cycle_guard_enabled": 0,
+      "exact_transition_fires": 229,
+      "legacy_label_fires": 0,
+      "reservation_decisions": 0,
+      "reservations_created": 0,
+      "resources_allocated": 229,
+      "resources_released": 229
+    },
+    "event_log_path": "joao/results/transition_aware_branching_20260715/smoke/shortest_queue_seed1_event_log.csv",
+    "events": 458,
+    "final_marking_rate": 1.0,
+    "runtime_seconds": 0.112,
+    "seed": 1,
+    "strategy": "shortest_queue"
+  },
+  {
+    "admitted": 12,
+    "censored": 0,
+    "completed": 12,
+    "cyclic": 0,
+    "deadlocked": 0,
+    "diagnostics": {
+      "ambiguous_legacy_label_rejections": 0,
+      "branch_invalid_predictions_rejected": 0,
+      "branch_predictions": 217,
+      "branch_transition_ambiguities": 0,
+      "diagnostic_cycle_guard_enabled": 0,
+      "exact_transition_fires": 229,
+      "legacy_label_fires": 0,
+      "reservation_decisions": 214,
+      "reservations_created": 214,
+      "resources_allocated": 229,
+      "resources_released": 229
+    },
+    "event_log_path": "joao/results/transition_aware_branching_20260715/smoke/parksong_composite_seed1_event_log.csv",
+    "events": 458,
+    "final_marking_rate": 1.0,
+    "runtime_seconds": 0.103,
+    "seed": 1,
+    "strategy": "parksong_composite"
+  }
+]

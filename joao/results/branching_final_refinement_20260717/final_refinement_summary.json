@@ -1,0 +1,139 @@
+{
+  "created_at": "2026-07-17T17:51:56.933178+00:00",
+  "python": "3.14.3 (v3.14.3:323c59a5e34, Feb  3 2026, 11:41:37) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "pandas": "3.0.2",
+  "numpy": "2.4.4",
+  "scikit_learn": "1.8.0",
+  "pm4py": "2.7.22.2",
+  "branch": "joao/integrate-methods-2026-07-15",
+  "head": "24a5545ac7e8d170c3ce1a8e2ad6f7d9204dce99",
+  "git_dirty": true,
+  "advanced_i": {
+    "candidate_rule_count": 154,
+    "selected_rule_count": 9,
+    "rule_count": 9,
+    "n_samples": 29385,
+    "covered_samples": 2890,
+    "rule_coverage": 0.09834949804321932,
+    "rule_only_accuracy": 0.9207612456747405,
+    "fallback_accuracy": 0.7954708435553878,
+    "total_accuracy": 0.8077930917134593,
+    "applied_rule_counts": {
+      "f425e14def_case:ApplicationType_==_Limit_raise_A_Concept": 864,
+      "ea54a03ddb_case:LoanGoal_==_Home_improvement_A_Concept": 1621,
+      "ea54a03ddb_case:LoanGoal_==_Remaining_debt_home_A_Concept": 168,
+      "f425e14def_org:resource_==_User_10_A_Concept": 101,
+      "ea54a03ddb_case:LoanGoal_==_Caravan___Camper_A_Concept": 69,
+      "d4d1b4e4db_org:resource_==_User_5_A_Cancelled": 33,
+      "d4d1b4e4db_org:resource_==_User_12_A_Cancelled": 34
+    }
+  },
+  "sampling": [
+    {
+      "missing_rate": 0.1,
+      "n_samples": 29385,
+      "sampling_rate": 0.09939959648994871,
+      "mode_fill_rate": 0.09939959648994871,
+      "no_sampling_accuracy": 0.8237876467585503,
+      "sampled_accuracy": 0.8036753445635528,
+      "mode_accuracy": 0.7990471328909308,
+      "delta_accuracy_sampled_vs_none": -0.02011230219499749,
+      "delta_accuracy_sampled_vs_mode": 0.004628211672622062,
+      "no_sampling_macro_f1": 0.6686387918354132,
+      "sampled_macro_f1": 0.6541313736923167,
+      "mode_macro_f1": 0.6499612379169717,
+      "delta_macro_f1_sampled_vs_none": -0.014507418143096529
+    },
+    {
+      "missing_rate": 0.3,
+      "n_samples": 29385,
+      "sampling_rate": 0.2998565837769513,
+      "mode_fill_rate": 0.2998565837769513,
+      "no_sampling_accuracy": 0.8201123021949974,
+      "sampled_accuracy": 0.7816913391185979,
+      "mode_accuracy": 0.7692700357325166,
+      "delta_accuracy_sampled_vs_none": -0.03842096307639953,
+      "delta_accuracy_sampled_vs_mode": 0.012421303386081273,
+      "no_sampling_macro_f1": 0.664098873157552,
+      "sampled_macro_f1": 0.6362041709825074,
+      "mode_macro_f1": 0.6232471770730307,
+      "delta_macro_f1_sampled_vs_none": -0.02789470217504464
+    },
+    {
+      "missing_rate": 0.5,
+      "n_samples": 29385,
+      "sampling_rate": 0.4997399061717592,
+      "mode_fill_rate": 0.4997399061717592,
+      "no_sampling_accuracy": 0.8018036413135954,
+      "sampled_accuracy": 0.7542964097328569,
+      "mode_accuracy": 0.7413986727922409,
+      "delta_accuracy_sampled_vs_none": -0.04750723158073844,
+      "delta_accuracy_sampled_vs_mode": 0.012897736940616022,
+      "no_sampling_macro_f1": 0.6448892659507502,
+      "sampled_macro_f1": 0.6146113713747307,
+      "mode_macro_f1": 0.5962313142953478,
+      "delta_macro_f1_sampled_vs_none": -0.030277894576019593
+    }
+  ],
+  "transition_continuation": {
+    "case_count": 500,
+    "ambiguous_decisions": 0,
+    "model_invocations": 0,
+    "fallback_rate": 0.0,
+    "invalid_model_selection": 0,
+    "source_counts": {},
+    "model": {
+      "continuation_1_step": 0.0,
+      "continuation_3_steps": 0.0,
+      "continuation_full": 0.0
+    },
+    "first_candidate": {
+      "continuation_1_step": 0.0,
+      "continuation_3_steps": 0.0,
+      "continuation_full": 0.0
+    },
+    "deterministic_random_proxy": {
+      "continuation_1_step": 0.0,
+      "continuation_3_steps": 0.0,
+      "continuation_full": 0.0
+    },
+    "status": "not_identifiable_on_this_log_bpmn"
+  },
+  "calibration": {
+    "evaluated": true,
+    "adopted": false,
+    "adopted_method": null,
+    "records": [
+      {
+        "method": "uncalibrated",
+        "accuracy": 0.8134422324315127,
+        "macro_f1": 0.6625173888406606,
+        "log_loss": 0.3162965633011401,
+        "brier": 0.18903705966786705,
+        "adopted": false,
+        "reason": "baseline"
+      },
+      {
+        "method": "sigmoid",
+        "accuracy": NaN,
+        "macro_f1": NaN,
+        "log_loss": NaN,
+        "brier": NaN,
+        "adopted": false,
+        "reason": "failed: IndexError: arrays used as indices must be of integer (or boolean) type"
+      },
+      {
+        "method": "isotonic",
+        "accuracy": NaN,
+        "macro_f1": NaN,
+        "log_loss": NaN,
+        "brier": NaN,
+        "adopted": false,
+        "reason": "failed: IndexError: arrays used as indices must be of integer (or boolean) type"
+      }
+    ]
+  },
+  "fixed_replay_rerun_required": false,
+  "composite_changed": false
+}

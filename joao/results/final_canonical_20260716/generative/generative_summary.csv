@@ -1,0 +1,6 @@
+strategy,runs,admitted_total,completed_total,pooled_completion_rate,mean_seed_completion_rate,censored_total,deadlocked_total,exact_transition_fires,legacy_label_fires,invalid_transition_fires,resource_violations,permission_violations,reservations_created,reservations_used
+batch,3,109,86,0.7889908256880734,0.7842288430523725,23,0,1471,0,0,0,0,0,0
+kunkler,3,109,81,0.7431192660550459,0.7482811306340719,28,0,1485,0,0,0,0,0,0
+parksong_composite,3,109,76,0.6972477064220184,0.7033783210253798,33,0,1560,0,0,0,0,1014,483
+round_robin,3,109,87,0.7981651376146789,0.7987437399202104,22,0,1594,0,0,0,0,0,0
+shortest_queue,3,109,89,0.8165137614678899,0.8208131737543503,20,0,1546,0,0,0,0,0,0

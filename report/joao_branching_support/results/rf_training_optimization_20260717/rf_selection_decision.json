@@ -1,0 +1,125 @@
+{
+  "created_at": "2026-07-17T18:20:23.302293+00:00",
+  "python": "3.14.3 (v3.14.3:323c59a5e34, Feb  3 2026, 11:41:37) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "sklearn": "1.8.0",
+  "branch": "joao/integrate-methods-2026-07-15",
+  "head": "24a5545ac7e8d170c3ce1a8e2ad6f7d9204dce99",
+  "dataset_counts": {
+    "inner_train": 58320,
+    "inner_validation": 10627,
+    "outer_train": 68947,
+    "outer_test": 29385
+  },
+  "features": [
+    "current_activity",
+    "previous_activity",
+    "event_index",
+    "weekday",
+    "hour",
+    "month",
+    "elapsed_time_seconds",
+    "time_since_previous_event_seconds",
+    "trace_prefix",
+    "resource",
+    "case:ApplicationType",
+    "case:LoanGoal",
+    "case:RequestedAmount",
+    "EventOrigin",
+    "org:resource"
+  ],
+  "excluded_features": [
+    {
+      "feature": "current_activity_visit_count",
+      "reason": "constant",
+      "missing_rate": 0.0
+    },
+    {
+      "feature": "consecutive_repetition_count",
+      "reason": "constant",
+      "missing_rate": 0.0
+    },
+    {
+      "feature": "CreditScore",
+      "reason": "constant",
+      "missing_rate": 0.0
+    }
+  ],
+  "current_params": {
+    "n_estimators": 100,
+    "max_depth": 8,
+    "min_samples_leaf": 2,
+    "min_samples_split": 2,
+    "max_features": "sqrt",
+    "class_weight": "balanced",
+    "criterion": "gini"
+  },
+  "candidate_count_phase_a": 30,
+  "selection": {
+    "decision": "ADOPT_RECOMMENDED",
+    "reason": "predeclared criteria satisfied",
+    "criteria": {
+      "macro_f1_improvement_ge_0.005": true,
+      "weighted_f1_drop_le_0.002": true,
+      "accuracy_drop_le_0.010": true,
+      "fallback_rate_not_materially_higher": true,
+      "runtime_acceptable": true
+    },
+    "baseline": {
+      "candidate_id": "rf_00",
+      "mean_macro_f1": 0.7779511697281652,
+      "std_macro_f1": 5.085947154941269e-06,
+      "macro_f1_ci95_low": 0.7779448546906862,
+      "macro_f1_ci95_high": 0.7779574847656443,
+      "mean_weighted_f1": 0.8440191099017019,
+      "mean_accuracy": 0.8179354474451868,
+      "mean_log_loss": 0.29047314677880376,
+      "mean_brier": 0.1731400136109945,
+      "mean_top2_accuracy": 1.0,
+      "mean_inference_runtime_seconds": 0.05196000020041538,
+      "mean_artifact_size_estimate_bytes": 1347232.0,
+      "mean_fallback_rate": 0.0
+    },
+    "best": {
+      "candidate_id": "rf_27",
+      "mean_macro_f1": 0.8416423822000185,
+      "std_macro_f1": 0.0011957155106174977,
+      "macro_f1_ci95_low": 0.840157705298391,
+      "macro_f1_ci95_high": 0.8431270591016461,
+      "mean_weighted_f1": 0.9424057102983008,
+      "mean_accuracy": 0.9390985226310342,
+      "mean_log_loss": 0.14920146376353344,
+      "mean_brier": 0.09624363938336353,
+      "mean_top2_accuracy": 1.0,
+      "mean_inference_runtime_seconds": 0.07866961640029331,
+      "mean_artifact_size_estimate_bytes": 29552805.4,
+      "mean_fallback_rate": 0.0
+    },
+    "decision_after_fixed_replay": "ADOPT_RECOMMENDED",
+    "fixed_replay_note": "No run failures or new liveness violations were recorded. Ranking by conditional cycle time changed because completion/censorship changed for some strategies; interpret timing jointly with completion."
+  },
+  "selected_candidate_id": "rf_27",
+  "selected_params": {
+    "n_estimators": 200,
+    "max_depth": 16,
+    "min_samples_leaf": 5,
+    "min_samples_split": 5,
+    "max_features": 0.5,
+    "class_weight": "balanced_subsample",
+    "criterion": "gini"
+  },
+  "artifact_created": true,
+  "fixed_replay_rerun_required": true,
+  "composite_hierarchy": [
+    "PredictiveBranchingEngine",
+    "ProbabilityBranchingEngine",
+    "random_bpmn_valid_fallback"
+  ],
+  "evaluation_artifact": "joao/models/branching/composite_branching_evaluation_train70_rfopt_v1.pkl",
+  "evaluation_artifact_sha256": "490da841440cd019a0819892ab659e5b61f5ee55182f6db12a536a9c4d23ff82",
+  "deployment_artifact": "joao/models/branching/composite_branching_deployment_full_rfopt_v1.pkl",
+  "deployment_artifact_sha256": "14b61cd4e13762e584fc35dfbd657142d1bfb4868c0cff3daf2b9b83d75e47e3",
+  "fixed_replay_rerun_completed": true,
+  "fixed_replay_candidate_dir": "joao/results/final_canonical_rfopt_candidate_20260717/fixed_replay",
+  "fixed_replay_ranking_changed": true
+}

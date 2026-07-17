@@ -1,0 +1,23 @@
+The fixed-replay benchmark evaluates R-RRA and R-SHQ on the same 76 held-out
+historical routes and five seeds as the common allocation comparison. Both
+baselines use the same corrected RoundRobin pointer semantics and the same
+leakage-free RF-optimized branching artifact as the cross-method comparison.
+R-RRA completed $380/380$ admitted route instances and R-SHQ completed
+$379/380$. R-RRA reached a mean cycle time of $29.2187$ h, mean waiting time of
+$27.2885$ min, Gini of $0.5327$ and weighted fairness of $0.0053$. R-SHQ reached a lower observed mean
+cycle time of $18.1068$ h and lower observed Gini of $0.4738$, but its mean
+waiting time was higher at $27.9555$ min. Its weighted fairness was also lower
+at $0.0032$. Weighted fairness is interpreted in the same direction as Gini
+(lower is more balanced after availability weighting), while horizon-normalized
+occupation is descriptive rather than universally better when lower or higher.
+
+The paired ShortestQueue--RoundRobin comparison over the five seeds reports
+one fewer completed route for R-SHQ, a mean cycle-time difference of
+$-40003.00$ s, a mean waiting-time difference of $40.02$ s, a mean Gini
+difference of $-0.0589$ and a mean weighted-fairness difference of $-0.00203$.
+These are descriptive paired differences over five seeds, not a claim of
+statistical superiority. The result supports R-SHQ as the stronger reactive
+efficiency--fairness baseline among completed routes for this workload, with
+the caveat that R-RRA completed one additional fixed-route instance and that
+R-SHQ observes only current availability and cumulative assignment counts, not
+future arrivals, future calendar states or processing-time predictions.

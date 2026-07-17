@@ -1,0 +1,10 @@
+rule_id,decision_point_id,attribute,operator,value,preferred_activity,support,confidence,lift,value_kind
+f425e14def_case:ApplicationType_==_Limit_raise_A_Concept,f425e14def284db9d10b1e2e81b7d87b11e23229e14dbd5aacaad824a189a229,case:ApplicationType,==,Limit raise,A_Concept,2153,1.0,2.8352994555353903,categorical
+f425e14def_org:resource_==_User_10_A_Concept,f425e14def284db9d10b1e2e81b7d87b11e23229e14dbd5aacaad824a189a229,org:resource,==,User_10,A_Concept,276,1.0,2.8352994555353903,categorical
+f425e14def_resource_==_User_10_A_Concept,f425e14def284db9d10b1e2e81b7d87b11e23229e14dbd5aacaad824a189a229,resource,==,User_10,A_Concept,276,1.0,2.8352994555353903,categorical
+d4d1b4e4db_org:resource_==_User_12_A_Cancelled,d4d1b4e4db8285026ac8d09a789297af04b551058c6ce54ba5c5f89e804e49e2,org:resource,==,User_12,A_Cancelled,31,0.8064516129032258,1.241097612065354,categorical
+d4d1b4e4db_resource_==_User_12_A_Cancelled,d4d1b4e4db8285026ac8d09a789297af04b551058c6ce54ba5c5f89e804e49e2,resource,==,User_12,A_Cancelled,31,0.8064516129032258,1.241097612065354,categorical
+d4d1b4e4db_org:resource_==_User_5_A_Cancelled,d4d1b4e4db8285026ac8d09a789297af04b551058c6ce54ba5c5f89e804e49e2,org:resource,==,User_5,A_Cancelled,68,0.7941176470588235,1.2221161191749428,categorical
+ea54a03ddb_case:LoanGoal_==_Remaining_debt_home_A_Concept,ea54a03ddb98229f44e66b947d886ed8bdc15fc037d279ae15975e25b6714433,case:LoanGoal,==,Remaining debt home,A_Concept,321,0.9127725856697819,1.1035555273893534,categorical
+ea54a03ddb_case:LoanGoal_==_Caravan___Camper_A_Concept,ea54a03ddb98229f44e66b947d886ed8bdc15fc037d279ae15975e25b6714433,case:LoanGoal,==,Caravan / Camper,A_Concept,149,0.8791946308724832,1.0629592844732734,categorical
+ea54a03ddb_case:LoanGoal_==_Home_improvement_A_Concept,ea54a03ddb98229f44e66b947d886ed8bdc15fc037d279ae15975e25b6714433,case:LoanGoal,==,Home improvement,A_Concept,2918,0.8766278272789582,1.0598559810460797,categorical

@@ -1,0 +1,10 @@
+strategy,seed,admitted,completed,incomplete,deadlocked,cyclic,censored,completion_rate,final_marking_rate,events,runtime_seconds,exact_transition_fires,legacy_label_fires,invalid_predictions,duplicate_label_ambiguities,resources_allocated,resources_released,reservations_created,reservation_decisions,event_limit_terminations,resource_overlap_violations,permission_violations
+round_robin,1,33,33,0,0,0,0,1.0,1.0,1160,0.261,580,0,0,0,580,580,0,0,0,0,0
+shortest_queue,1,33,33,0,0,0,0,1.0,1.0,1160,0.269,580,0,0,0,580,580,0,0,0,0,0
+parksong_composite,1,33,33,0,0,0,0,1.0,1.0,1160,0.266,580,0,0,0,580,580,532,532,0,0,0
+round_robin,2,39,39,0,0,0,0,1.0,1.0,1270,0.279,635,0,0,0,635,635,0,0,0,0,0
+shortest_queue,2,39,39,0,0,0,0,1.0,1.0,1270,0.277,635,0,0,0,635,635,0,0,0,0,0
+parksong_composite,2,39,39,0,0,0,0,1.0,1.0,1271,0.265,635,0,0,0,635,635,582,582,0,0,0
+round_robin,3,40,40,0,0,0,0,1.0,1.0,1162,0.246,581,0,0,0,581,581,0,0,0,0,0
+shortest_queue,3,40,40,0,0,0,0,1.0,1.0,1162,0.251,581,0,0,0,581,581,0,0,0,0,0
+parksong_composite,3,40,40,0,0,0,0,1.0,1.0,1162,0.266,581,0,0,0,581,581,527,527,0,0,0

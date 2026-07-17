@@ -1,0 +1,41 @@
+{
+  "outer_train_ratio": 0.7,
+  "inner_train_ratio": 0.85,
+  "case_counts": {
+    "outer_train": 22056,
+    "outer_test": 9453,
+    "inner_train": 18747,
+    "inner_validation": 3309,
+    "fixed_replay": 76
+  },
+  "case_hashes": {
+    "outer_train": "198b59778ac48eab73bd8115a11bf0b2f05482a2255404b55ddec42e5bc887bc",
+    "outer_test": "3a1be546f6754cc23f7e1c553cc148e0e25a06a9e9a1a68aec17ec071b1e7931",
+    "inner_train": "18786e4d07ec0ce330d4a7abefb4756783b0cecdda8963a2cd407dec872e5a44",
+    "inner_validation": "4318a8e9905837d8fa7425036fa00a6e55c39ccecc752e46253d4bbfdc3802bd"
+  },
+  "fixed_replay_case_hash": "54c159c6efddef14e20d6cd190946634dc0a3c8a16e278a01b7ed2d374987ae6",
+  "fixed_replay_cases_in_outer_test": true,
+  "case_overlap": {
+    "outer_train_outer_test": 0,
+    "training_fixed_replay": 0
+  },
+  "time_ranges": {
+    "outer_train": [
+      "2016-01-01 09:51:15.304000+00:00",
+      "2016-09-16 15:03:25.813000+00:00"
+    ],
+    "outer_test": [
+      "2016-09-16 15:07:41.531000+00:00",
+      "2016-12-31 21:37:53.216000+00:00"
+    ],
+    "inner_train": [
+      "2016-01-01 09:51:15.304000+00:00",
+      "2016-08-15 08:06:02.009000+00:00"
+    ],
+    "inner_validation": [
+      "2016-08-15 08:12:05.678000+00:00",
+      "2016-09-16 15:03:25.813000+00:00"
+    ]
+  }
+}

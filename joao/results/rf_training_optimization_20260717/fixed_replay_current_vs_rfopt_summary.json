@@ -1,0 +1,66 @@
+{
+  "current_dir": "joao/results/final_canonical_branching_corrected_20260717/fixed_replay",
+  "candidate_dir": "joao/results/final_canonical_rfopt_candidate_20260717/fixed_replay",
+  "comparison_csv": "joao/results/rf_training_optimization_20260717/fixed_replay_current_vs_rfopt.csv",
+  "rank_metric": "cycle_time_mean_s_mean",
+  "ranking_changed": true,
+  "current_ranking": [
+    {
+      "strategy": "ShortestQueue",
+      "cycle_time_mean_s_mean": 65184.340367578945,
+      "fixed_route_completion_rate_mean": 0.9973684210526316
+    },
+    {
+      "strategy": "Batch",
+      "cycle_time_mean_s_mean": 71654.25454378947,
+      "fixed_route_completion_rate_mean": 0.9973684210526316
+    },
+    {
+      "strategy": "RoundRobin",
+      "cycle_time_mean_s_mean": 77197.10816807018,
+      "fixed_route_completion_rate_mean": 0.9973684210526316
+    },
+    {
+      "strategy": "ParkSong-Composite",
+      "cycle_time_mean_s_mean": 93346.7780823827,
+      "fixed_route_completion_rate_mean": 0.9973684210526316
+    },
+    {
+      "strategy": "Kunkler-Rinderle-Ma",
+      "cycle_time_mean_s_mean": 102065.26544042106,
+      "fixed_route_completion_rate_mean": 0.9973684210526316
+    }
+  ],
+  "candidate_ranking": [
+    {
+      "strategy": "ShortestQueue",
+      "cycle_time_mean_s_mean": 65184.340367578945,
+      "fixed_route_completion_rate_mean": 0.9973684210526316
+    },
+    {
+      "strategy": "Batch",
+      "cycle_time_mean_s_mean": 71654.25454378947,
+      "fixed_route_completion_rate_mean": 0.9973684210526316
+    },
+    {
+      "strategy": "Kunkler-Rinderle-Ma",
+      "cycle_time_mean_s_mean": 103557.96308252632,
+      "fixed_route_completion_rate_mean": 0.9973684210526316
+    },
+    {
+      "strategy": "RoundRobin",
+      "cycle_time_mean_s_mean": 105187.33774473684,
+      "fixed_route_completion_rate_mean": 1.0
+    },
+    {
+      "strategy": "ParkSong-Composite",
+      "cycle_time_mean_s_mean": 116029.34441057895,
+      "fixed_route_completion_rate_mean": 1.0
+    }
+  ],
+  "current_failures": 0,
+  "candidate_failures": 0,
+  "current_case_rows": 25,
+  "candidate_case_rows": 25,
+  "candidate_new_failure": false
+}

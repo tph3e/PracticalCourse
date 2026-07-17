@@ -1,0 +1,5 @@
+{
+  "status": "pending_pytest_collection",
+  "command": "PYTHONPATH=joao python3 -m pytest joao/tests",
+  "note": "This placeholder is overwritten after pytest is run."
+}

@@ -1,0 +1,3 @@
+split,cases,events,fitness_status,precision_status,fitness_log_fitness,fitness_average_trace_fitness,fitness_percentage_of_fitting_traces,fitness_perc_fit_traces,precision,transition_decision_observations,transition_synchronized_observations,transition_exact_transition_fires,transition_multi_candidate_observations,transition_nonconformant_observations_skipped,transition_runtime_seconds
+train,500,20295,ok,ok,0.5851133904206267,0.6089679991346008,0.0,0.0,0.5996715927750411,1719,1219,1219,826,500,0.245
+held_out_test,500,17816,ok,ok,0.6203041865964423,0.6499680622524749,0.0,0.0,0.6072024008002668,1678,1178,1178,821,500,0.239

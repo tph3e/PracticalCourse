@@ -1,0 +1,6 @@
+check_name,guard,status,detected,missing_guard_if_failed
+ShortestQueue selects the lowest cumulative load,test_shortest_queue_selects_lowest_cumulative_resource_load; invariant strictly lower-load test,pass,True,
+RoundRobin advances after multi-assignment epoch,test_round_robin_continues_after_multi_assignment_epoch,pass,True,
+ParkSong respects permissions,ParkSong skills/permissions tests and same-snapshot invariant,pass,True,
+ML adapter filters invalid activities,MLPredictionAdapter impossible-activity filtering,pass,True,
+Duplicate task/resource assignments are rejected,duplicate task/resource invariant tests,pass,True,

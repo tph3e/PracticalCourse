@@ -1,0 +1,2 @@
+status,ambiguous_decisions,model_invocations,fallback_rate,model_continuation_1_step,model_continuation_3_steps,model_continuation_full,first_continuation_1_step,random_proxy_continuation_1_step
+not_identifiable_on_this_log_bpmn,0,0,0.0,0.0,0.0,0.0,0.0,0.0

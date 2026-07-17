@@ -1,0 +1,19 @@
+\begin{table*}[t]
+    \caption{Canonical fixed-replay allocation results over five seeds. Cycle time is in hours for completed fixed routes; waiting time is in minutes. Values are mean $\pm$ sample standard deviation where shown.}
+    \centering
+    \renewcommand{\arraystretch}{1.15}
+    \scriptsize
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{lrrrrrr}
+        \toprule
+        \textbf{Method} & \textbf{Fixed-route completion} & \textbf{Cycle h} & \textbf{Wait min} & \textbf{Gini} & \textbf{Weighted fairness} & \textbf{Runtime s} \\
+        \midrule
+        RoundRobin & 380/380 & $29.2187 \pm 10.3694$ & $27.2885 \pm 3.5666$ & $0.5327 \pm 0.1182$ & $0.0053$ & $12.093$ \\
+        ShortestQueue & 379/380 & $18.1068 \pm 2.4882$ & $27.9555 \pm 1.1158$ & $0.4738 \pm 0.0438$ & $0.0032$ & $12.968$ \\
+        ParkSong-Composite & 380/380 & $32.2304 \pm 13.0963$ & $73.3656 \pm 42.6618$ & $0.5284 \pm 0.0130$ & $0.0044$ & $16.465$ \\
+        Kunkler-Rinderle-Ma & 379/380 & $28.7661 \pm 9.7918$ & $27.2548 \pm 5.4913$ & $0.4896 \pm 0.0243$ & $0.0054$ & $9.593$ \\
+        Batch & 379/380 & $19.9040 \pm 5.9974$ & $27.3101 \pm 3.5203$ & $0.4912 \pm 0.0151$ & $0.0054$ & $9.392$ \\
+        \bottomrule
+    \end{tabular}}
+    \label{tab:joao_fixed_replay}
+\end{table*}

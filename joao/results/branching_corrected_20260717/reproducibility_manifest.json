@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-07-17T16:29:25.165396+00:00",
+  "python": "3.14.3 (v3.14.3:323c59a5e34, Feb  3 2026, 11:41:37) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "pandas": "3.0.2",
+  "numpy": "2.4.4",
+  "scikit_learn": "1.8.0",
+  "pm4py": "2.7.22.2",
+  "branch": "joao/integrate-methods-2026-07-15",
+  "head": "24a5545ac7e8d170c3ce1a8e2ad6f7d9204dce99",
+  "git_dirty": true,
+  "command": "joao/scripts/branching/run_corrected_branching_evaluation.py --log data/logData.xes --bpmn models/v4_replay.bpmn --output-dir joao/results/branching_corrected_20260717 --seed 1"
+}

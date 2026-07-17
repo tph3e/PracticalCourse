@@ -1,0 +1,34 @@
+{
+  "data_path": "data/logData.xes",
+  "data_sha256": "d653a36d36fac668638d65c90b803670bab6e599aa23e3f7dd4f0d5d0b216b1c",
+  "branching_artifact": "joao/results/joao_calibration_20260715_roundrobin_split_v4/models/composite_branching_temporal_split.pkl",
+  "branching_sha256": "ebc35f05081780363f915b5d8a17f7fcf7a873221d25d4ae0b011a50147f563b",
+  "branching_metadata": {
+    "training_mode": "temporal_case_split",
+    "split_ratio": 0.7,
+    "seed": 1,
+    "data_path": "data/logData.xes",
+    "data_sha256": "d653a36d36fac668638d65c90b803670bab6e599aa23e3f7dd4f0d5d0b216b1c",
+    "train_case_count": 22056,
+    "test_case_count": 9453,
+    "train_event_count": 845508,
+    "test_event_count": 356759,
+    "train_case_id_sha256": "198b59778ac48eab73bd8115a11bf0b2f05482a2255404b55ddec42e5bc887bc",
+    "test_case_id_sha256": "3a1be546f6754cc23f7e1c553cc148e0e25a06a9e9a1a68aec17ec071b1e7931",
+    "evaluation_log_used_for_training_constraints": false,
+    "stateful_features": [
+      "current_activity",
+      "previous_activity",
+      "trace_prefix",
+      "current_activity_visit_count",
+      "consecutive_repetition_count",
+      "elapsed_case_time_seconds",
+      "time_since_previous_event_seconds",
+      "case_attributes"
+    ],
+    "sklearn_version": "1.9.0",
+    "runtime_state_persisted": false
+  },
+  "processing_time_artifact": "joao/models/process_time/final_process_time_coverage_v2.pkl",
+  "processing_time_sha256": "c540304cdbb6f60159ad1023112e6d5e71aeecae68b885ee2e2b1ac3c826a886"
+}

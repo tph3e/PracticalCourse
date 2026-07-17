@@ -2,17 +2,21 @@ from src.resource_allocation.AllocationStrategy import Resource
 from src.resource_allocation.MLPredictionAdapter import MLPredictionAdapter
 from src.resource_allocation.ParkSongAllocation import ParkSongAllocation
 from src.resource_allocation.ParkSongMLIntegration import ParkSongMLIntegration
+import pytest
 
 
 class FakeModel:
+    def __init__(self, probabilities=None):
+        self.probabilities = probabilities or [0.9, 0.1]
+
     def predict_proba(self, X):
-        return [[0.9, 0.1]]
+        return [self.probabilities]
 
 
 class FakePredictiveEngine:
-    def __init__(self):
+    def __init__(self, probabilities=None):
         self.is_trained = True
-        self.model = FakeModel()
+        self.model = FakeModel(probabilities)
         self.feature_names = ["current_activity", "event_index"]
         self.classes_ = ["A_APPROVED", "A_REJECTED"]
 
@@ -139,3 +143,56 @@ def test_parksong_ml_integration_assigns_current_task_when_current_is_better():
     assert decisions[0].decision_type == "assignment"
     assert decisions[0].task_id == "T1"
     assert decisions[0].activity == "A_CURRENT"
+
+
+@pytest.mark.parametrize(
+    ("raw_probability", "expected_decision"),
+    [
+        (0.2, "idle"),
+        (0.49, "idle"),
+        (0.51, "reservation"),
+    ],
+)
+def test_parksong_ml_threshold_uses_raw_probability_after_bpmn_filtering(
+    raw_probability,
+    expected_decision,
+):
+    predictive_engine = FakePredictiveEngine(
+        probabilities=[1.0 - raw_probability, raw_probability],
+    )
+
+    adapter = MLPredictionAdapter(
+        predictive_engine=predictive_engine,
+        default_expected_delay=1.0,
+    )
+
+    allocator = ParkSongAllocation(
+        prediction_probability_threshold=0.5,
+        allow_strategic_idling=True,
+    )
+
+    integration = ParkSongMLIntegration(
+        prediction_adapter=adapter,
+        allocator=allocator,
+    )
+
+    decisions = integration.allocate_with_ml_predictions(
+        event={
+            "case:concept:name": "C1",
+            "concept:name": "A_START",
+            "event_index": 0,
+        },
+        possible_activities=["A_REJECTED"],
+        resources=[
+            Resource(
+                resource_id="R1",
+                available=True,
+                skills=["A_REJECTED"],
+            )
+        ],
+        waiting_tasks=[],
+        current_time=0.0,
+    )
+
+    assert len(decisions) == 1
+    assert decisions[0].decision_type == expected_decision

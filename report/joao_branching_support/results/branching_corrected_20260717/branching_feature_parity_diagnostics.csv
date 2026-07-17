@@ -1,0 +1,2 @@
+feature_rows_built,missing_feature_count,missing_feature_rate,default_count_by_feature,unknown_category_count,timestamp_fallback_count,history_fallback_count,runtime_feature_schema_mismatch,train_runtime_parity_failures
+98332,98332,0.05,{'CreditScore': 98332},98332,0,0,0,0

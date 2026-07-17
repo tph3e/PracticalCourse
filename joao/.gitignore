@@ -8,6 +8,10 @@ venv/
 # Large trained models
 *.pkl
 results/*.pkl
+!models/branching/composite_branching_evaluation_train70.pkl
+!models/branching/composite_branching_deployment_full.pkl
+!models/branching/transition_aware_branching_v1_20260715.pkl
+!models/process_time/final_process_time_coverage_v2.pkl
 
 # macOS
 .DS_Store
@@ -16,3 +20,8 @@ results/*.pkl
 *.log
 log.xes
 log.csv
+.DS_Store
+
+# Final local evaluation outputs
+results/final_resource_allocation/
+results/joao_calibration_*/

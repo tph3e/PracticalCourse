@@ -1,0 +1,6 @@
+{
+  "mode": "pretrained_artifact",
+  "branching_artifact": "joao/results/joao_calibration_20260715_roundrobin_split_v4/models/composite_branching_temporal_split.pkl",
+  "artifact_sha256": "ebc35f05081780363f915b5d8a17f7fcf7a873221d25d4ae0b011a50147f563b",
+  "evaluation_log_used_for_training_constraints": false
+}

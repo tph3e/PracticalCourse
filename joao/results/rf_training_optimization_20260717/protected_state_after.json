@@ -1,0 +1,343 @@
+{
+  "created_at": "2026-07-17T18:55:16.035117+00:00",
+  "branch": "joao/integrate-methods-2026-07-15",
+  "head": "24a5545ac7e8d170c3ce1a8e2ad6f7d9204dce99",
+  "files": [
+    {
+      "path": "BPMN_engine.py",
+      "exists": true,
+      "sha256": "3aef9022b4e621565821d429b7bbe5ef57c169a3c5d835b710e3d76aa4ada7e1",
+      "size_bytes": 11160
+    },
+    {
+      "path": "SimulationEngineCore.py",
+      "exists": true,
+      "sha256": "7bff8a91df8a3ea4b9c852b346887bd71dfdc0823d921eaf592fe252c09773fd",
+      "size_bytes": 10848
+    },
+    {
+      "path": "arrival_engine.py",
+      "exists": true,
+      "sha256": "19be9f2ef7fb52fbaba2164659506668400a2958eccdfd4e566c8d5b627236dc",
+      "size_bytes": 2377
+    },
+    {
+      "path": "joao/models/branching/composite_branching_deployment_full.pkl",
+      "exists": true,
+      "sha256": "6dcd01744f635d0fdd24008c3e7c4ae28bedb340c4f37aabbc1bc53fd7e7ab3e",
+      "size_bytes": 1513467
+    },
+    {
+      "path": "joao/models/branching/composite_branching_evaluation_train70.pkl",
+      "exists": true,
+      "sha256": "ebb16554ecf0e42faa87c7334faef3ab81b742b8e29820df1ce032bd4109f1c4",
+      "size_bytes": 1509302
+    },
+    {
+      "path": "joao/models/branching/transition_aware_branching_v1_20260715.pkl",
+      "exists": true,
+      "sha256": "79127e6b1cea6cb58fc1f1f19b1ce96564837a24aa5adf80efcbcc71fc183e54",
+      "size_bytes": 1552
+    },
+    {
+      "path": "joao/models/process_time/final_process_time_coverage_v2.pkl",
+      "exists": true,
+      "sha256": "c540304cdbb6f60159ad1023112e6d5e71aeecae68b885ee2e2b1ac3c826a886",
+      "size_bytes": 16424315
+    },
+    {
+      "path": "joao/results/final_canonical_branching_corrected_20260717/fixed_replay/final_artifact_hashes.json",
+      "exists": true,
+      "sha256": "f88ed4690f1576d0ba58d4c9843a9f8213490e192c386415ed53f13850f24389",
+      "size_bytes": 3737
+    },
+    {
+      "path": "joao/results/final_canonical_branching_corrected_20260717/fixed_replay/fixed_replay_config.json",
+      "exists": true,
+      "sha256": "2472cda6d19968905d25f04d10c54c275628f8e980eb9ba7296c6a367a245bb9",
+      "size_bytes": 1151
+    },
+    {
+      "path": "joao/scripts/resource_allocation/build_processing_time_coverage_v2.py",
+      "exists": true,
+      "sha256": "cb073773f58838ffe8a9a8cdf1e176fd9367723698bc5e6607cfd9389456de62",
+      "size_bytes": 27792
+    },
+    {
+      "path": "joao/scripts/resource_allocation/run_final_resource_allocation_evaluation.py",
+      "exists": true,
+      "sha256": "2935aab0b8c642699a930ccd846353ca966665a47619eca5a35e6a7d02c6fbe7",
+      "size_bytes": 77700
+    },
+    {
+      "path": "joao/scripts/resource_allocation/run_full_method_audit.py",
+      "exists": true,
+      "sha256": "0c6d7584e5a69b4dbac8f73210f73a5a7452e7ee6503c520d51554a76b320008",
+      "size_bytes": 53883
+    },
+    {
+      "path": "joao/scripts/resource_allocation/run_full_simulation_allocation_comparison.py",
+      "exists": true,
+      "sha256": "2ece48a7a5d7548d135721842b2efc9ced8036b29ccdbca60db1567b2ef57a75",
+      "size_bytes": 31639
+    },
+    {
+      "path": "joao/scripts/resource_allocation/run_integrated_allocation_comparison.py",
+      "exists": true,
+      "sha256": "959a6c986451ad2242f4f0f0681b6349378f5b4885dc60ede5d3f91f037b943b",
+      "size_bytes": 10604
+    },
+    {
+      "path": "joao/scripts/resource_allocation/run_my_methods_integrated_comparison.py",
+      "exists": true,
+      "sha256": "299f4b042f78f9a4c828c3e305b9f892337f3215692c3d151e85b26d5a75d88f",
+      "size_bytes": 19829
+    },
+    {
+      "path": "joao/scripts/resource_allocation/run_resource_allocation_comparison.py",
+      "exists": true,
+      "sha256": "46bae65e3fc47dd7d674e592a3c5a204773aa519ec85d9fe429981b820e50d16",
+      "size_bytes": 11133
+    },
+    {
+      "path": "joao/scripts/resource_allocation/run_resource_allocation_scenarios.py",
+      "exists": true,
+      "sha256": "582651ac617c89caf968c4919d6f6701bd68c9dfa395b0a2b76f2efe95cce791",
+      "size_bytes": 9072
+    },
+    {
+      "path": "joao/scripts/resource_allocation/write_reproducibility_manifest.py",
+      "exists": true,
+      "sha256": "c2d1aed488dd3a6ff287c36e2200b9ee62d7355ba17fe479db29b6383eccb773",
+      "size_bytes": 6211
+    },
+    {
+      "path": "joao/src/resource_allocation/AllocationStrategy.py",
+      "exists": true,
+      "sha256": "e3d813fd8df58ed3082f97451ce370dd51688d84ee09583b78c33418ccf86523",
+      "size_bytes": 3155
+    },
+    {
+      "path": "joao/src/resource_allocation/AllocationUtils.py",
+      "exists": true,
+      "sha256": "6f63b465f93b4e5ddf22d629cc5011a349ee734e7a0e54eeb24a7d7167bf0e9d",
+      "size_bytes": 2228
+    },
+    {
+      "path": "joao/src/resource_allocation/BatchAllocationAdapter.py",
+      "exists": true,
+      "sha256": "7049c3c507a0e9d4f4c8e52484aba02c22ecf7c540c4145ae0d4cb978b18562f",
+      "size_bytes": 5892
+    },
+    {
+      "path": "joao/src/resource_allocation/GlobalAllocationAdapter.py",
+      "exists": true,
+      "sha256": "8c436f6cd7fdedd025847c6c7fc8b1e3c1ca77aaac8f1a9a5ad0c41ac25dd3b7",
+      "size_bytes": 2110
+    },
+    {
+      "path": "joao/src/resource_allocation/KunklerAllocationAdapter.py",
+      "exists": true,
+      "sha256": "41e920348bdf8c603c9870b0a500dd2b1b6db436a7b18a5900a6b66791e152a9",
+      "size_bytes": 12322
+    },
+    {
+      "path": "joao/src/resource_allocation/MLPredictionAdapter.py",
+      "exists": true,
+      "sha256": "3dd4314b07bff2cedcba4ae1d5933e0fdbb687841da73e68aa68720e11644e53",
+      "size_bytes": 6116
+    },
+    {
+      "path": "joao/src/resource_allocation/ParkSongAllocation.py",
+      "exists": true,
+      "sha256": "3c2e101f671263f14b9363767233fa88cd6b0e7d8382a7109a6577c7e7e427b1",
+      "size_bytes": 18746
+    },
+    {
+      "path": "joao/src/resource_allocation/ParkSongMLIntegration.py",
+      "exists": true,
+      "sha256": "da9024be9b3371a2740841b3219c4b68e31137d8fb2cd15ed044a7cb4c044a1f",
+      "size_bytes": 1573
+    },
+    {
+      "path": "joao/src/resource_allocation/PickInterfaceAllocationAdapter.py",
+      "exists": true,
+      "sha256": "1dffbc0f8c10f63b1124328a6fa77cf143c2cec0a1a7e05056cb060233911d88",
+      "size_bytes": 5023
+    },
+    {
+      "path": "joao/src/resource_allocation/RandomResourceAllocation.py",
+      "exists": true,
+      "sha256": "64969c415ee9f0e9345eec12448950e1007929113b39610a93fb54b47171c303",
+      "size_bytes": 2233
+    },
+    {
+      "path": "joao/src/resource_allocation/ResourceAllocationEvaluator.py",
+      "exists": true,
+      "sha256": "4ee2ae5fde0951370382b3718e737a75ed887aa5d05a0126dcad0b01b00d7a49",
+      "size_bytes": 3077
+    },
+    {
+      "path": "joao/src/resource_allocation/ResourceAllocationMetrics.py",
+      "exists": true,
+      "sha256": "a8705b8811150155beba21c2e9ef22c5b25b2b42c79e146e9408b0a76d013087",
+      "size_bytes": 4912
+    },
+    {
+      "path": "joao/src/resource_allocation/RoundRobinResourceAllocation.py",
+      "exists": true,
+      "sha256": "d37c9590e626689ccfbdc94830739d33d18dc5202d6c20cdd8ecbc4c5fcf9a45",
+      "size_bytes": 4009
+    },
+    {
+      "path": "joao/src/resource_allocation/ShortestQueueAllocation.py",
+      "exists": true,
+      "sha256": "9095cebe4f8963946942604ac4f85984d95df8ae2796b3076c69870c1945cd52",
+      "size_bytes": 4994
+    },
+    {
+      "path": "joao/src/resource_allocation/__init__.py",
+      "exists": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/AllocationStrategyFactory.py",
+      "exists": true,
+      "sha256": "a0696617c1fd1f315ff6e814fcdd86ea5d61d8182e43f0f732a30e1d1a149330",
+      "size_bytes": 1008
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/BranchPredictionContext.py",
+      "exists": true,
+      "sha256": "5ab3519afb4c22cc3b4d8a3b948b9d9aded4b30a6e60eb08cf2cc00f3ae1384e",
+      "size_bytes": 1137
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/CompositeBranchingAdapter.py",
+      "exists": true,
+      "sha256": "7f9499041ebf2b6780fbe340218f388cfacaaeb9338d86632c02d9e5a7fbbd75",
+      "size_bytes": 13716
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/IntegratedAllocationEngine.py",
+      "exists": true,
+      "sha256": "ebbf7ecca1e098a6578b8430766cc1bc27955c6b7bf9735fff62f3c2b4de41dd",
+      "size_bytes": 77298
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/RequestedAmountCompatibility.py",
+      "exists": true,
+      "sha256": "6b3067d2ed012491a0f364510499847c8b081c17c669dfa7ec973f9f587db1dc",
+      "size_bytes": 2111
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/TaskLifecycleContext.py",
+      "exists": true,
+      "sha256": "41f36106a62200b1593925aa31ef09e985f92da9ea39cbfbec1c54744d37015e",
+      "size_bytes": 1015
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/TransitionAwareBranching.py",
+      "exists": true,
+      "sha256": "e91266749e7c1b9d641f0e782c0397611f661b5a33cb70a1fb49b1a7eb33bbc9",
+      "size_bytes": 6069
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/WeightedFairnessAdapter.py",
+      "exists": true,
+      "sha256": "7c15896c25ec91f58245a6e0499a14b461908b7247344a52c0be565e349df1ab",
+      "size_bytes": 3527
+    },
+    {
+      "path": "joao/src/resource_allocation/integration/__init__.py",
+      "exists": true,
+      "sha256": "cd7605b21de012fa6b57d24a6f1e5f4862dc0f13d150ab9e355b6bc4f131d938",
+      "size_bytes": 411
+    },
+    {
+      "path": "models/v4_replay.bpmn",
+      "exists": true,
+      "sha256": "329c6d18b42a680cf45ebc3f22e0d1683318f1c638ffdcbd79064385f5c82586",
+      "size_bytes": 77499
+    },
+    {
+      "path": "processTimes/__init__.py",
+      "exists": true,
+      "sha256": "0dda32feedfa205af9aab71d29d8f97690190a1ea066440ba5e093af89a87b5f",
+      "size_bytes": 84
+    },
+    {
+      "path": "processTimes/process_time_engine.py",
+      "exists": true,
+      "sha256": "0a5fd1ce2ed0d06f52611fc5c52f4719a5d048565ff52c6deff9b3e569d647d7",
+      "size_bytes": 18579
+    },
+    {
+      "path": "processTimes/processing_time_models.pkl",
+      "exists": true,
+      "sha256": "bac8ccf28d86a8d89bae1bea4177f4669fc52c3c5ba69ac03b84b88044fbff98",
+      "size_bytes": 9301529
+    },
+    {
+      "path": "report/sections/base_heuristics_eval_joao.tex",
+      "exists": true,
+      "sha256": "30fb66a6fabfa5f107a774a7193da34dce76c9c708f5121c1cf7a2ded26fb73f",
+      "size_bytes": 1431
+    },
+    {
+      "path": "report/sections/formalization_park.tex",
+      "exists": true,
+      "sha256": "1e5aa6a139e2aab1250fe0cd618463dbf7bddac3042e9f76ed68ffc424e098ab",
+      "size_bytes": 3621
+    },
+    {
+      "path": "report/sections/heuristics.tex",
+      "exists": true,
+      "sha256": "02f06fe832f18487f2b1595e070dc53b52e5089ba2bf9c1aba31eedb14d63bb0",
+      "size_bytes": 2468
+    },
+    {
+      "path": "resources/__init__.py",
+      "exists": true,
+      "sha256": "adbf7d072ddfc99c52112e0118a369ce22be4abcc2beb5d64c3de0f5a289de9a",
+      "size_bytes": 309
+    },
+    {
+      "path": "resources/allocation.py",
+      "exists": true,
+      "sha256": "2cf341bbab10551a0758a8339824894daccf253af008d7aea2d77fcdf7e39cc5",
+      "size_bytes": 1440
+    },
+    {
+      "path": "resources/availability.py",
+      "exists": true,
+      "sha256": "c1fda383cef68a2fd97ea3bbd4592fa318286967308c772651e990fe97d6619d",
+      "size_bytes": 3334
+    },
+    {
+      "path": "resources/log_loader.py",
+      "exists": true,
+      "sha256": "c4bab39e1f83491355c2f8bc4c5d37fb4fcb83baae2faf7867ad9eccf3d97124",
+      "size_bytes": 1039
+    },
+    {
+      "path": "resources/permissions.py",
+      "exists": true,
+      "sha256": "2f2a5d1a41cd251da6c9d3967d2b49ef03b226b9701569feafa45163423d3987",
+      "size_bytes": 1643
+    },
+    {
+      "path": "resources/resource_engine.py",
+      "exists": true,
+      "sha256": "5d3ec484add1b356eb4e9a1ec3d3b77897229c6b100fb9f0dbde98f8473399a4",
+      "size_bytes": 5895
+    },
+    {
+      "path": "resources/role_discovery.py",
+      "exists": true,
+      "sha256": "e111c61e170edf0d5ae74cbfb62947ad496b86e773d80942d72acf36217b6a0b",
+      "size_bytes": 2679
+    }
+  ]
+}

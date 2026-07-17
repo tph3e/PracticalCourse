@@ -1,0 +1,24 @@
+{
+  "case_count": 500,
+  "ambiguous_decisions": 0,
+  "model_invocations": 0,
+  "fallback_rate": 0.0,
+  "invalid_model_selection": 0,
+  "source_counts": {},
+  "model": {
+    "continuation_1_step": 0.0,
+    "continuation_3_steps": 0.0,
+    "continuation_full": 0.0
+  },
+  "first_candidate": {
+    "continuation_1_step": 0.0,
+    "continuation_3_steps": 0.0,
+    "continuation_full": 0.0
+  },
+  "deterministic_random_proxy": {
+    "continuation_1_step": 0.0,
+    "continuation_3_steps": 0.0,
+    "continuation_full": 0.0
+  },
+  "status": "not_identifiable_on_this_log_bpmn"
+}

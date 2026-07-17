@@ -1,0 +1,16 @@
+cases_admitted,cases_observed,fixed_routes_completed,cases_completed,cases_incomplete,cases_deadlocked,cases_cyclic,cases_censored,fixed_route_completion_rate,completion_rate,active_cases_remaining,waiting_queue_remaining,strategy,seed
+29,29,29,29,0,0,0,0,1.0,1.0,0,0,RoundRobin,1
+37,37,36,36,1,0,0,1,0.972972972972973,0.972972972972973,0,1,RoundRobin,2
+30,30,30,30,0,0,0,0,1.0,1.0,0,0,RoundRobin,3
+29,29,29,29,0,0,0,0,1.0,1.0,0,0,ShortestQueue,1
+37,37,36,36,1,0,0,1,0.972972972972973,0.972972972972973,0,1,ShortestQueue,2
+30,30,30,30,0,0,0,0,1.0,1.0,0,0,ShortestQueue,3
+29,29,29,29,0,0,0,0,1.0,1.0,0,0,ParkSong-Composite,1
+37,37,36,36,1,0,0,1,0.972972972972973,0.972972972972973,0,1,ParkSong-Composite,2
+30,30,30,30,0,0,0,0,1.0,1.0,0,0,ParkSong-Composite,3
+29,29,29,29,0,0,0,0,1.0,1.0,0,0,Kunkler-Rinderle-Ma,1
+37,37,37,37,0,0,0,0,1.0,1.0,0,0,Kunkler-Rinderle-Ma,2
+30,30,30,30,0,0,0,0,1.0,1.0,0,0,Kunkler-Rinderle-Ma,3
+29,29,29,29,0,0,0,0,1.0,1.0,0,0,Batch,1
+37,37,37,37,0,0,0,0,1.0,1.0,0,0,Batch,2
+30,30,30,30,0,0,0,0,1.0,1.0,0,0,Batch,3

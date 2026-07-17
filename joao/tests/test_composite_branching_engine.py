@@ -6,6 +6,11 @@ class InvalidEngine:
         return ["INVALID_ACTIVITY"]
 
 
+class NonListEngine:
+    def getNextActivities(self, event, possibleActivities):
+        return possibleActivities[0]
+
+
 class ErrorEngine:
     def getNextActivities(self, event, possibleActivities):
         raise RuntimeError("Simulated engine failure")
@@ -40,6 +45,52 @@ def test_composite_uses_first_valid_engine():
     assert stats["engine_failure_counts"]["ErrorEngine"] == 1
     assert stats["invalid_result_counts"]["InvalidEngine"] == 1
     assert stats["random_fallback_count"] == 0
+
+
+def test_composite_rejects_non_list_output():
+    engine = CompositeBranchingEngine(
+        engines=[
+            NonListEngine(),
+            ValidEngine(),
+        ],
+        seed=1,
+        use_default_hierarchy=False,
+    )
+
+    result = engine.getNextActivities(
+        event=object(),
+        possibleActivities=["A", "B"],
+    )
+
+    assert result == ["B"]
+
+    stats = engine.get_statistics()
+    assert stats["invalid_result_counts"]["NonListEngine"] == 1
+    assert stats["engine_success_counts"]["ValidEngine"] == 1
+
+
+def test_composite_manual_engines_are_tried_in_order():
+    first_valid = ValidEngine()
+    second_valid = ValidEngine()
+
+    engine = CompositeBranchingEngine(
+        engines=[
+            first_valid,
+            second_valid,
+        ],
+        seed=1,
+        use_default_hierarchy=False,
+    )
+
+    result = engine.getNextActivities(
+        event=object(),
+        possibleActivities=["A", "B"],
+    )
+
+    assert result == ["B"]
+
+    stats = engine.get_statistics()
+    assert stats["engine_success_counts"]["ValidEngine"] == 1
 
 
 def test_composite_random_fallback_when_no_engine_is_configured():
@@ -109,6 +160,13 @@ def test_composite_builds_default_hierarchy_without_crashing():
     assert "default_build_errors" in stats
     assert isinstance(stats["configured_engines"], list)
     assert isinstance(stats["default_build_errors"], dict)
+    assert "AttributeBasedBranchingEngine" not in stats["configured_engines"]
+    assert "AttributeSamplingBranchingEngine" not in stats["configured_engines"]
+    assert stats["configured_engines"] == [
+        name
+        for name in stats["configured_engines"]
+        if name in {"PredictiveBranchingEngine", "ProbabilityBranchingEngine"}
+    ]
 
 
 def test_composite_default_hierarchy_still_has_random_fallback():

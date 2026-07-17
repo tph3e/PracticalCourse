@@ -52,7 +52,12 @@ class EventLogger:
 
 class Engine:
 
-    def __init__(self, dataPath: str=PATH_TRAINING_LOG, seed: int=1)-> None:
+    def __init__(
+        self,
+        dataPath: str=PATH_TRAINING_LOG,
+        seed: int=1,
+        processing_time_artifact: str | None = None,
+    )-> None:
         self.event_counter: int = 0
         self.case_counter: int = 0
         self.event_queue: List[Event] = []
@@ -67,7 +72,14 @@ class Engine:
         self.bpmnEngine = BPMNEngine()
         self.resourceEngine = ResourceEngine(log, seed)
         self.branchingEngine = BranchingEngine()
-        self.processTimeEngine = ProcessTimeEngine(log=log, seed=seed)
+        try:
+            self.processTimeEngine = ProcessTimeEngine(
+                log=log,
+                seed=seed,
+                model_path=processing_time_artifact,
+            )
+        except TypeError:
+            self.processTimeEngine = ProcessTimeEngine(log=log, seed=seed)
 
         self.freq: pd.DataFrame = pd.DataFrame()
         self.amount_dists: Dict[tuple, tuple] = {}
@@ -202,7 +214,7 @@ class Engine:
 
                 #put event on top of event queue
                 self.push_event(event.time, EventType.ACTIVITY_START, firstActivity, data, event.eventCase)
-                self.bpmnEngine.initialize_case(event.eventCase)
+                self.bpmnEngine.initialize_case(event.eventCase.caseId)
 
                 #plan next case arrival
                 nextArrivalTime = self.arrivalEngine.nextArrivalTime(event.time)+event.time

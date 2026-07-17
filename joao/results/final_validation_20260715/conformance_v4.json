@@ -1,0 +1,79 @@
+{
+  "arcs": 64,
+  "final_marking": {
+    "sink": 1
+  },
+  "held_out_test": {
+    "fitness": {
+      "name": "fitness_token_based_replay",
+      "status": "ok",
+      "value": {
+        "average_trace_fitness": 0.6499680622524749,
+        "log_fitness": 0.6203041865964423,
+        "perc_fit_traces": 0.0,
+        "percentage_of_fitting_traces": 0.0
+      }
+    },
+    "precision": {
+      "name": "precision_token_based_replay",
+      "status": "ok",
+      "value": 0.6072024008002668
+    },
+    "transition_replay": {
+      "class_distribution": {
+        "sid-22DF11B1-33D8-4079-AD21-899140F72928": 321,
+        "sid-7E3ED5E3-E847-4221-938D-A708D84C8B52": 321,
+        "sid-966FC28F-43C6-4F69-8FB4-DA4A2A0C5485": 36,
+        "sid-A27D1C67-0CD6-4AFA-8F05-A160CAE16F49": 500
+      },
+      "metrics": {
+        "decision_observations": 1678,
+        "exact_transition_fires": 1178,
+        "multi_candidate_observations": 821,
+        "nonconformant_observations_skipped": 500,
+        "runtime_seconds": 0.239,
+        "synchronized_observations": 1178
+      }
+    }
+  },
+  "model": "models/v4_replay.bpmn",
+  "model_sha256": "329c6d18b42a680cf45ebc3f22e0d1683318f1c638ffdcbd79064385f5c82586",
+  "places": 24,
+  "sample_case_limit": 500,
+  "silent_transitions": 11,
+  "train": {
+    "fitness": {
+      "name": "fitness_token_based_replay",
+      "status": "ok",
+      "value": {
+        "average_trace_fitness": 0.6089679991346008,
+        "log_fitness": 0.5851133904206267,
+        "perc_fit_traces": 0.0,
+        "percentage_of_fitting_traces": 0.0
+      }
+    },
+    "precision": {
+      "name": "precision_token_based_replay",
+      "status": "ok",
+      "value": 0.5996715927750411
+    },
+    "transition_replay": {
+      "class_distribution": {
+        "sid-22DF11B1-33D8-4079-AD21-899140F72928": 326,
+        "sid-7E3ED5E3-E847-4221-938D-A708D84C8B52": 326,
+        "sid-966FC28F-43C6-4F69-8FB4-DA4A2A0C5485": 67,
+        "sid-A27D1C67-0CD6-4AFA-8F05-A160CAE16F49": 500
+      },
+      "metrics": {
+        "decision_observations": 1719,
+        "exact_transition_fires": 1219,
+        "multi_candidate_observations": 826,
+        "nonconformant_observations_skipped": 500,
+        "runtime_seconds": 0.245,
+        "synchronized_observations": 1219
+      }
+    }
+  },
+  "transitions": 32,
+  "visible_transitions": 21
+}

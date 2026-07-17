@@ -1,0 +1,2 @@
+total_events,cases_seen,synchronized_events,nonconformant_events,deterministic_single_candidate_states,multi_candidate_decision_observations,skipped_true_label_not_enabled,duplicate_label_ambiguities,cases_fully_synchronized,cases_partially_synchronized
+475306,31509,228895,28809,103337,98332,24526,0,2700,28809

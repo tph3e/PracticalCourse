@@ -1,0 +1,37 @@
+\begin{table*}[p]
+    \caption{Per-seed canonical fixed-replay metrics. Cycle time is in hours; waiting time is in minutes; occupation is normalized by the full arrival-plus-drain horizon.}
+    \centering
+    \tiny
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{llrrrrrr}
+        \toprule
+        \textbf{Method} & \textbf{Seed} & \textbf{Completed/admitted} & \textbf{Cycle h} & \textbf{Wait min} & \textbf{Occ. horizon \%} & \textbf{Gini} & \textbf{Runtime s} \\
+        \midrule
+        RoundRobin & 1 & 76/76 & 17.7031 & 25.3456 & 0.1654 & 0.4574 & 11.564 \\
+        RoundRobin & 2 & 76/76 & 37.5774 & 27.3036 & 0.1731 & 0.4960 & 11.910 \\
+        RoundRobin & 3 & 76/76 & 41.4704 & 30.9533 & 0.1693 & 0.4849 & 11.456 \\
+        RoundRobin & 4 & 76/76 & 28.9231 & 22.4095 & 0.1554 & 0.4825 & 11.587 \\
+        RoundRobin & 5 & 76/76 & 20.4195 & 30.4304 & 0.3976 & 0.7427 & 13.950 \\
+        ShortestQueue & 1 & 75/76 & 19.2220 & 28.4332 & 0.1584 & 0.4247 & 12.063 \\
+        ShortestQueue & 2 & 76/76 & 14.8289 & 26.6636 & 0.1480 & 0.4330 & 11.714 \\
+        ShortestQueue & 3 & 76/76 & 20.0788 & 29.5785 & 0.1337 & 0.4922 & 13.450 \\
+        ShortestQueue & 4 & 76/76 & 20.3080 & 27.3047 & 0.1380 & 0.4905 & 12.570 \\
+        ShortestQueue & 5 & 76/76 & 16.0961 & 27.7975 & 0.1297 & 0.5285 & 15.041 \\
+        ParkSong-Composite & 1 & 76/76 & 26.0404 & 60.0675 & 0.1848 & 0.5377 & 18.192 \\
+        ParkSong-Composite & 2 & 76/76 & 24.8862 & 45.5716 & 0.1785 & 0.5216 & 19.203 \\
+        ParkSong-Composite & 3 & 76/76 & 53.1821 & 146.4947 & 0.1517 & 0.5085 & 11.149 \\
+        ParkSong-Composite & 4 & 76/76 & 20.5432 & 42.0222 & 0.2047 & 0.5361 & 16.507 \\
+        ParkSong-Composite & 5 & 76/76 & 36.5000 & 72.6718 & 0.1785 & 0.5379 & 17.273 \\
+        Kunkler-Rinderle-Ma & 1 & 76/76 & 39.0450 & 36.7063 & 0.2666 & 0.5173 & 10.976 \\
+        Kunkler-Rinderle-Ma & 2 & 75/76 & 15.5926 & 24.6909 & 0.3075 & 0.4619 & 9.865 \\
+        Kunkler-Rinderle-Ma & 3 & 76/76 & 21.6370 & 26.3665 & 0.2611 & 0.4813 & 9.612 \\
+        Kunkler-Rinderle-Ma & 4 & 76/76 & 32.5015 & 25.9772 & 0.2910 & 0.4747 & 8.255 \\
+        Kunkler-Rinderle-Ma & 5 & 76/76 & 35.0544 & 22.5333 & 0.2717 & 0.5129 & 9.256 \\
+        Batch & 1 & 76/76 & 29.9184 & 28.7695 & 0.3027 & 0.4808 & 9.309 \\
+        Batch & 2 & 75/76 & 20.4857 & 28.6345 & 0.2923 & 0.4782 & 9.966 \\
+        Batch & 3 & 76/76 & 17.1961 & 21.7315 & 0.2862 & 0.4816 & 8.844 \\
+        Batch & 4 & 76/76 & 17.5094 & 31.0160 & 0.2754 & 0.5073 & 9.786 \\
+        Batch & 5 & 76/76 & 14.4103 & 26.3990 & 0.2568 & 0.5079 & 9.054 \\
+        \bottomrule
+    \end{tabular}}
+\end{table*}

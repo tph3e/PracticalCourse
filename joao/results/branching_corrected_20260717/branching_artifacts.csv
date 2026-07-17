@@ -1,0 +1,3 @@
+artifact,sha256,scope
+/Users/joaofmzuffo/Documents/University/TUM/Bachelor/SS_2026/Praktikum/PracticalCourse/joao/models/branching/composite_branching_evaluation_train70.pkl,ebb16554ecf0e42faa87c7334faef3ab81b742b8e29820df1ce032bd4109f1c4,evaluation
+/Users/joaofmzuffo/Documents/University/TUM/Bachelor/SS_2026/Praktikum/PracticalCourse/joao/models/branching/composite_branching_deployment_full.pkl,6dcd01744f635d0fdd24008c3e7c4ae28bedb340c4f37aabbc1bc53fd7e7ab3e,deployment

@@ -1,0 +1,8 @@
+{
+  "source": "Repository README only; no detailed Task 1.5 assignment PDF/text was found in the workspace.",
+  "advanced_i_requirements": [
+    "Attribute-based branching should use case/event attributes to choose among branch candidates.",
+    "Attribute sampling should learn attribute distributions from training data and use sampled values when runtime attributes are missing.",
+    "Both must be trained/evaluated without test-log leakage and must respect BPMN-valid candidates."
+  ]
+}

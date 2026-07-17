@@ -1,0 +1,21 @@
+split,class,count,share
+inner_train,A_Cancelled,1540,0.026406035665294925
+inner_train,A_Complete,6344,0.10877914951989026
+inner_train,A_Concept,16640,0.28532235939643347
+inner_train,A_Submitted,12135,0.2080761316872428
+inner_train,O_Create Offer,19564,0.33545953360768177
+inner_train,W_Complete application,1,1.7146776406035666e-05
+inner_train,W_Handle leads,2096,0.035939643347050756
+inner_validation,A_Cancelled,376,0.03538157523289734
+inner_validation,A_Complete,1374,0.12929330949468334
+inner_validation,A_Concept,2978,0.2802296038392773
+inner_validation,A_Submitted,2140,0.20137385903829869
+inner_validation,O_Create Offer,3431,0.3228568740001882
+inner_validation,W_Handle leads,328,0.030864778394655124
+all_development,A_Cancelled,1916,0.027789461470404803
+all_development,A_Complete,7718,0.1119410561735826
+all_development,A_Concept,19618,0.28453739829144126
+all_development,A_Submitted,14275,0.20704309106995228
+all_development,O_Create Offer,22995,0.3335170493277445
+all_development,W_Complete application,1,1.4503894295618373e-05
+all_development,W_Handle leads,2424,0.03515743977257894

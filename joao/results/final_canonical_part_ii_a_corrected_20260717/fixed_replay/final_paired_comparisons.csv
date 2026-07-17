@@ -1,0 +1,22 @@
+comparison,metric,metric_direction,paired_seed_count,mean_difference,median_difference,std_difference,ci_method,ci_level,difference_ci95_half_width,wins,ties,losses,mean_percent_difference,median_percent_difference
+ShortestQueue - RoundRobin,fixed_route_completion_rate,higher_is_better,5,0.0,0.0,0.0,student_t,0.95,0.0,0,5,0,0.0,0.0
+ShortestQueue - RoundRobin,cycle_time_mean_s,lower_is_better,5,-12012.767800491229,-15564.317618421032,24642.90297430234,student_t,0.95,30598.20543441967,3,0,2,-9.179618482582132,-21.17298628056722
+ShortestQueue - RoundRobin,waiting_time_mean_s,lower_is_better,5,117.74086856832477,147.73592718893974,212.8478900205737,student_t,0.95,264.2855621321806,2,0,3,9.460640059644444,9.080414397320688
+ShortestQueue - RoundRobin,resource_fairness_gini,lower_is_better,5,-0.09727597057601489,-0.0665943246574407,0.14674268054209966,student_t,0.95,0.18220510342904117,3,0,2,-12.868022849879235,-13.555861437607911
+ShortestQueue - RoundRobin,weighted_resource_fairness,lower_is_better,5,-0.00323016862760682,-0.0006637405745212,0.003815059551413906,student_t,0.95,0.004737022095994049,5,0,0,-35.309557431485366,-17.21164805342378
+ShortestQueue - RoundRobin,horizon_normalized_resource_occupation_mean,descriptive,5,-0.0010648708166642999,-0.0005934787777217999,0.0011378413517816196,student_t,0.95,0.0014128166421747412,,,,-33.664830253615015,-30.73533411336338
+ShortestQueue - RoundRobin,horizon_normalized_throughput_cases_per_hour,higher_is_better,5,0.0,0.0,0.0,student_t,0.95,0.0,0,5,0,0.0,0.0
+ParkSong-Composite - RoundRobin,fixed_route_completion_rate,higher_is_better,5,0.0,0.0,0.009304036594559787,student_t,0.95,0.011552487277435238,1,3,1,0.003508771929824528,0.0
+ParkSong-Composite - RoundRobin,cycle_time_mean_s,lower_is_better,5,16149.669914312524,15128.908789473688,33092.16490571777,student_t,0.95,41089.34978605181,1,0,4,29.344283376958607,20.58067601115785
+ParkSong-Composite - RoundRobin,waiting_time_mean_s,lower_is_better,5,1315.7913603272557,1007.4736859015388,792.536388854553,student_t,0.95,984.0639013071175,0,0,5,82.02079784978937,80.02687525162354
+ParkSong-Composite - RoundRobin,resource_fairness_gini,lower_is_better,5,-0.054489652176771486,0.02584044911250194,0.13813338173294284,student_t,0.95,0.1715152470479326,2,0,3,-5.178899085944582,5.260051054748494
+ParkSong-Composite - RoundRobin,weighted_resource_fairness,lower_is_better,5,-0.0021084885040217,0.0002536227303352001,0.00385947315800856,student_t,0.95,0.004792168872333016,2,0,3,-12.619769206802228,6.576764085918397
+ParkSong-Composite - RoundRobin,horizon_normalized_resource_occupation_mean,descriptive,5,-0.00067977928459666,-0.0002422036001615,0.0011405531682436984,student_t,0.95,0.001416183807045441,,,,-15.607501668658097,-12.543344183256936
+ParkSong-Composite - RoundRobin,horizon_normalized_throughput_cases_per_hour,higher_is_better,5,0.0,0.0,0.0004829964352367035,student_t,0.95,0.0005997192848941707,1,3,1,0.0035087719298244834,0.0
+ParkSong-Composite - ShortestQueue,fixed_route_completion_rate,higher_is_better,5,0.0,0.0,0.009304036594559787,student_t,0.95,0.011552487277435238,1,3,1,0.003508771929824528,0.0
+ParkSong-Composite - ShortestQueue,cycle_time_mean_s,lower_is_better,5,28162.437714803753,30693.22640789472,24831.5435556644,student_t,0.95,30832.433652897173,1,0,4,42.9782884062147,52.96872267714967
+ParkSong-Composite - ShortestQueue,waiting_time_mean_s,lower_is_better,5,1198.0504917589308,666.5789356711241,965.8152061661735,student_t,0.95,1199.2179704142839,0,0,5,71.39262493108657,41.66602883537918
+ParkSong-Composite - ShortestQueue,resource_fairness_gini,lower_is_better,5,0.042786318399243406,0.026888547214773573,0.03966705246451738,student_t,0.95,0.04925315096005112,0,0,5,9.70314662476154,5.48225209565568
+ParkSong-Composite - ShortestQueue,weighted_resource_fairness,lower_is_better,5,0.00112168012358512,0.0012094446236701997,0.00016182698977195868,student_t,0.95,0.00020093474713752985,0,0,5,34.67380341810664,37.662092203042896
+ParkSong-Composite - ShortestQueue,horizon_normalized_resource_occupation_mean,descriptive,5,0.00038509153206764,0.00036344054647469994,7.748724408343337e-05,student_t,0.95,9.621312129842684e-05,,,,27.51792831615571,26.264459226412377
+ParkSong-Composite - ShortestQueue,horizon_normalized_throughput_cases_per_hour,higher_is_better,5,0.0,0.0,0.0004829964352367035,student_t,0.95,0.0005997192848941707,1,3,1,0.0035087719298244834,0.0

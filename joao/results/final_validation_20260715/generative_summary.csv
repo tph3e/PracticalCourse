@@ -1,0 +1,4 @@
+strategy,seeds,runs,admitted_total,completed_total,completion_rate_mean,final_marking_rate_mean,deadlocked_total,censored_total,exact_transition_fires_total,legacy_label_fires_total,reservations_created_total,resource_overlap_violations_total,permission_violations_total
+parksong_composite,"1,2,3",3,112,112,1.0,1.0,0,0,1796,0,1641,0,0
+round_robin,"1,2,3",3,112,112,1.0,1.0,0,0,1796,0,0,0,0
+shortest_queue,"1,2,3",3,112,112,1.0,1.0,0,0,1796,0,0,0,0

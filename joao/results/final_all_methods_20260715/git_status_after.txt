@@ -1,0 +1,65 @@
+## joao/integrate-methods-2026-07-15
+ M BPMN_engine.py
+ M SimulationEngineCore.py
+ M joao/.gitignore
+ M joao/scripts/branching/compare_branching_approaches_and_splits.py
+ M joao/scripts/branching/export_branching_report.py
+ M joao/scripts/branching/train_final_predictive_model.py
+ M joao/scripts/branching/train_full_predictive_model.py
+ M joao/scripts/resource_allocation/run_resource_allocation_scenarios.py
+ M joao/src/branching/CompositeBranchingEngine.py
+ M joao/src/branching/PredictiveBranchingEngine.py
+ M joao/src/branching/ProbabilityBranchingEngine.py
+ M joao/src/resource_allocation/MLPredictionAdapter.py
+ M joao/src/resource_allocation/ShortestQueueAllocation.py
+ M joao/tests/resource_allocation/test_ml_prediction_adapter.py
+ M joao/tests/resource_allocation/test_parksong_ml_integration_layer.py
+ M joao/tests/resource_allocation/test_shortest_queue_allocation.py
+ M joao/tests/test_composite_branching_engine.py
+ M processTimes/process_time_engine.py
+ M resources/resource_engine.py
+?? joao/results/final_all_methods_20260715/
+?? joao/results/final_validation_20260715/
+?? joao/results/transition_aware_branching_20260715/
+?? joao/scripts/branching/export_final_composite_branching_artifact.py
+?? joao/scripts/branching/final_validation_analysis.py
+?? joao/scripts/branching/run_transition_aware_generative_smoke.py
+?? joao/scripts/branching/train_transition_aware_branching.py
+?? joao/scripts/process_model/
+?? joao/scripts/resource_allocation/build_processing_time_coverage_v2.py
+?? joao/scripts/resource_allocation/run_final_resource_allocation_evaluation.py
+?? joao/scripts/resource_allocation/run_full_method_audit.py
+?? joao/scripts/resource_allocation/run_full_simulation_allocation_comparison.py
+?? joao/scripts/resource_allocation/run_integrated_allocation_comparison.py
+?? joao/scripts/resource_allocation/run_my_methods_integrated_comparison.py
+?? joao/src/branching/CompositeBranchingArtifact.py
+?? joao/src/resource_allocation/BatchAllocationAdapter.py
+?? joao/src/resource_allocation/GlobalAllocationAdapter.py
+?? joao/src/resource_allocation/KunklerAllocationAdapter.py
+?? joao/src/resource_allocation/PickInterfaceAllocationAdapter.py
+?? joao/src/resource_allocation/RoundRobinResourceAllocation.py
+?? joao/src/resource_allocation/integration/
+?? joao/tests/conftest.py
+?? joao/tests/resource_allocation/test_batch_allocation_adapter.py
+?? joao/tests/resource_allocation/test_composite_branching_adapter.py
+?? joao/tests/resource_allocation/test_final_evaluation_metrics.py
+?? joao/tests/resource_allocation/test_full_method_audit_invariants.py
+?? joao/tests/resource_allocation/test_full_simulation_allocation_comparison_script.py
+?? joao/tests/resource_allocation/test_global_allocation_adapter.py
+?? joao/tests/resource_allocation/test_integrated_allocation_comparison_script.py
+?? joao/tests/resource_allocation/test_integrated_allocation_engine.py
+?? joao/tests/resource_allocation/test_kunkler_allocation_adapter.py
+?? joao/tests/resource_allocation/test_my_methods_integrated_comparison_script.py
+?? joao/tests/resource_allocation/test_pick_interface_allocation_adapter.py
+?? joao/tests/resource_allocation/test_requested_amount_compatibility.py
+?? joao/tests/resource_allocation/test_resource_engine_waiting_task_allocation.py
+?? joao/tests/resource_allocation/test_round_robin_resource_allocation.py
+?? joao/tests/resource_allocation/test_simulation_allocation_strategy_plug_in.py
+?? joao/tests/resource_allocation/test_transition_aware_branching_adapter.py
+?? joao/tests/resource_allocation/test_weighted_fairness_adapter.py
+?? joao/tests/test_bpmn_engine_transition_api.py
+?? joao/tests/test_composite_branching_artifact.py
+?? joao/tests/test_full_method_audit_branching.py
+?? joao/tests/test_project_integration_smoke.py
+?? models/v5_simulation.bpmn
+?? models/v5_simulation.pnml

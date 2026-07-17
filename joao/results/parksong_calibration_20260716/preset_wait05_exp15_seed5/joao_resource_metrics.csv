@@ -1,0 +1,2 @@
+resource_occupation_mean,resource_occupation_median,resource_fairness_gini,weighted_resource_fairness,weighted_resource_fairness_status,weighted_fairness_resource_count,strategy,seed
+0.001749794057377,0.0013111703096539,0.55412692759772,0.0046214072560467,computed,149,ParkSong-Composite,5

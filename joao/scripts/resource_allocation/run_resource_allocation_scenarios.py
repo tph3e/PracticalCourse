@@ -1,7 +1,14 @@
+"""
+Controlled/synthetic sanity check; not the source of final quantitative claims.
+
+Final Part II-A claims come from
+joao/results/final_canonical_rfopt_candidate_20260717/fixed_replay.
+"""
+
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import pandas as pd

@@ -1,0 +1,21 @@
+\input{joao_resource_allocation_support/part_ii_a_fixed_replay_table}
+
+No method dominates every metric. In the RF-optimized corrected fixed replay,
+RoundRobin and ParkSong-Composite completed all $380/380$ route instances,
+while ShortestQueue, Kunkler and Batch completed $379/380$. ShortestQueue has
+the lowest observed mean cycle time and the lowest observed Gini, so it provides the
+strongest descriptive efficiency--fairness trade-off among the reactive
+baselines. Batch has the lowest observed mean waiting time, while Kunkler and
+Batch show higher horizon-normalized occupation than the two Joao baselines.
+ParkSong-Composite exercises predictive reservations and reaches full
+fixed-route completion, but its higher waiting time and cycle time show that the
+reservation policy is not the strongest method on this workload.
+
+These rankings are descriptive over five seeds. Cycle time is computed only for
+completed route instances, occupation is retained as an operational descriptor,
+and weighted fairness follows the Gini direction where lower values indicate
+more balanced availability-weighted load. The generated table is read from
+\texttt{joao/results/final\_canonical\_rfopt\_candidate\_20260717/fixed\_replay/}
+and should be regenerated with
+\texttt{joao/scripts/resource\_allocation/generate\_part\_ii\_a\_report\_artifacts.py}
+whenever the fixed-replay CSVs change.

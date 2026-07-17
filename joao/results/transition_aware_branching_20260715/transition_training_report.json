@@ -1,0 +1,50 @@
+{
+  "artifact": "joao/models/branching/transition_aware_branching_v1_20260715.pkl",
+  "artifact_sha256": "79127e6b1cea6cb58fc1f1f19b1ce96564837a24aa5adf80efcbcc71fc183e54",
+  "fixed_replay_outputs_modified": false,
+  "held_out_report": {
+    "class_distribution": {
+      "sid-22DF11B1-33D8-4079-AD21-899140F72928": 139,
+      "sid-7E3ED5E3-E847-4221-938D-A708D84C8B52": 139,
+      "sid-966FC28F-43C6-4F69-8FB4-DA4A2A0C5485": 7,
+      "sid-A27D1C67-0CD6-4AFA-8F05-A160CAE16F49": 200
+    },
+    "metrics": {
+      "decision_observations": 685,
+      "exact_transition_fires": 485,
+      "multi_candidate_observations": 339,
+      "nonconformant_observations_skipped": 200,
+      "runtime_seconds": 0.19,
+      "synchronized_observations": 485
+    }
+  },
+  "split": {
+    "case_overlap": 0,
+    "test_cases": 9453,
+    "test_time_range": [
+      "2016-09-16 15:07:41.531000+00:00",
+      "2017-02-01 14:11:03.499000+00:00"
+    ],
+    "train_cases": 22056,
+    "train_time_range": [
+      "2016-01-01 09:51:15.304000+00:00",
+      "2017-01-26 09:11:10.837000+00:00"
+    ]
+  },
+  "train_report": {
+    "class_distribution": {
+      "sid-22DF11B1-33D8-4079-AD21-899140F72928": 326,
+      "sid-7E3ED5E3-E847-4221-938D-A708D84C8B52": 326,
+      "sid-966FC28F-43C6-4F69-8FB4-DA4A2A0C5485": 67,
+      "sid-A27D1C67-0CD6-4AFA-8F05-A160CAE16F49": 500
+    },
+    "metrics": {
+      "decision_observations": 1719,
+      "exact_transition_fires": 1219,
+      "multi_candidate_observations": 826,
+      "nonconformant_observations_skipped": 500,
+      "runtime_seconds": 0.809,
+      "synchronized_observations": 1219
+    }
+  }
+}

@@ -1,0 +1,4 @@
+method,accuracy,macro_f1,log_loss,brier,adopted,reason
+uncalibrated,0.8134422324315127,0.6625173888406606,0.3162965633011401,0.18903705966786705,False,baseline
+sigmoid,,,,,False,failed: IndexError: arrays used as indices must be of integer (or boolean) type
+isotonic,,,,,False,failed: IndexError: arrays used as indices must be of integer (or boolean) type

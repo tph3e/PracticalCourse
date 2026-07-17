@@ -1,0 +1,14 @@
+method,implemented,owned_by_joao,unit_tests,property_tests,controlled_benchmark,integration_test,artifact_required,deterministic_seed,permissions_validated,availability_validated,reservation_validated,performance_profiled,documented,known_blockers,ready_for_final_experiment
+ProbabilityBranchingEngine,True,True,True,deterministic randomized invariants,True,False,False,True,False,False,False,False,True,,True
+AttributeBasedBranchingEngine,True,True,True,deterministic randomized invariants,True,False,False,True,False,False,False,False,True,,True
+AttributeSamplingBranchingEngine,True,True,True,deterministic randomized invariants,True,False,False,True,False,False,False,False,True,,True
+PredictiveBranchingEngine,True,True,True,deterministic randomized invariants,True,False,True,True,False,False,False,False,True,,True
+CompositeBranchingEngine,True,True,True,deterministic randomized invariants,True,True,True,True,False,False,False,False,True,,True
+Random,True,True,True,deterministic randomized invariants,True,True,False,True,True,True,False,True,True,,True
+RoundRobin,True,True,True,deterministic randomized invariants,True,True,False,True,True,True,False,True,True,,True
+ShortestQueue,True,True,True,deterministic randomized invariants,True,True,False,True,True,True,False,True,True,,True
+ParkSongAllocation,True,True,True,deterministic randomized invariants,True,True,False,True,True,True,True,True,True,,True
+ParkSongML,True,True,True,deterministic randomized invariants,True,True,True,True,True,True,True,False,True,full integrated runner needs explicit separate label,False
+MLPredictionAdapter,True,True,True,deterministic randomized invariants,True,True,False,True,False,False,False,False,True,,True
+BatchAllocation,True,False,True,deterministic randomized invariants,True,False,False,True,True,True,False,True,True,,True
+Künstler/Küncler,False,False,False,deterministic randomized invariants,False,False,False,False,False,False,False,False,True,no production implementation found,False

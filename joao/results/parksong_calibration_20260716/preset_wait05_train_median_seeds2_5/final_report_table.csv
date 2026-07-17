@@ -1,0 +1,2 @@
+Method,Mean cycle time,Mean waiting time,Throughput,Utilization,Fairness,Weighted fairness,Completion rate
+ParkSong-Composite,83554.29259216448,3236.8479576078344,0.0519125683060109,0.0018167503701573,0.4690506875623345,0.00410714444622735,1.0

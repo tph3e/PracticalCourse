@@ -9,18 +9,27 @@ This folder contains João's individual contribution for the Business Process Pr
 Implemented approaches:
 
 1. ProbabilityBranchingEngine
-2. AttributeBasedBranchingEngine
-3. AttributeSamplingBranchingEngine
-4. PredictiveBranchingEngine
+2. PredictiveBranchingEngine
+3. CompositeBranchingEngine
 
-The final selected validation model is the PredictiveBranchingEngine with a temporal case-based 70/30 split.  
-After model selection, a full deployment model was trained on the complete event log and used in the simulator.
+The final branching scope is ProbabilityBranching as the Basic method,
+PredictiveBranching with a Random Forest as the Advanced-II method, and a
+CompositeBranching runtime chain:
+
+`Predictive Random Forest -> ProbabilityBranching fallback -> random BPMN-valid fallback`
+
+The corrected final evaluation uses a leakage-free temporal case-based 70/30
+split and the optimized evaluation artifact
+`models/branching/composite_branching_evaluation_train70_rfopt_v1.pkl`. A
+separate deployment artifact,
+`models/branching/composite_branching_deployment_full_rfopt_v1.pkl`, is trained
+on the full log but is not used for held-out metrics.
 
 ### Part II - 1.1 Basic Resource Allocation
 
 Implemented basic resource allocation heuristics:
 
-1. R-RRA - Random Resource Allocation
+1. R-RRA - Resource-aware Round Robin Allocation
 2. R-SHQ - Shortest Queue Allocation
 
 Design decision for uncertain resource availability:
@@ -35,6 +44,9 @@ Implemented a Park & Song-inspired prediction-based allocation approach:
 - ParkSongMLIntegration
 
 The ML model provides predicted future task candidates. The allocation strategy can assign current tasks, reserve resources for predicted tasks, or keep resources idle.
+In the canonical fixed replay this is reported as a Park & Song-inspired
+rolling-epoch approximation with reservations, not as the original temporal
+optimization formulation.
 
 ### Part II - 1.2 Evaluation
 
@@ -58,4 +70,33 @@ Implemented evaluation metrics:
 
 ## Notes
 
-Large `.pkl` model files are not committed to Git. They can be regenerated using the training scripts.
+The corrected canonical packages are:
+
+- `results/branching_corrected_20260717/`
+- `results/final_canonical_branching_corrected_20260717/`
+
+The older `results/final_canonical_20260716/` package and
+`models/branching/final_composite_branching.pkl` artifact are historical
+pre-correction material only. They should not be used to reconstruct the final
+tables.
+
+## Full Method Audit
+
+This repository section contains João's branching and resource-allocation subsystem.
+
+Scope: branching engines, Random baseline, RoundRobin/R-RRA, ShortestQueue/R-SHQ, ParkSong, ParkSongML prediction adapter, Batch comparison adapter, integrated allocation engine, tests, and controlled audit outputs.
+
+Key commands:
+
+```bash
+PYTHONPATH=joao python3 -m pytest joao/tests
+python3 joao/scripts/resource_allocation/run_full_method_audit.py
+```
+
+Artifacts:
+
+- `joao/models/branching/final_composite_branching_sklearn190.pkl`
+- `joao/models/process_time/final_process_time_coverage_v2.pkl`
+- `joao/results/full_method_audit/`
+
+Known limitations: ParkSong lifecycle is integration-owned; ParkSongML is a prediction supplier plus ParkSong allocator; Künstler/Küncler has no production class in this repository scan; final experimental performance requires separate validated integrated runs.

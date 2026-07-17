@@ -1,0 +1,35 @@
+{
+  "data_path": "data/logData.xes",
+  "data_sha256": "d653a36d36fac668638d65c90b803670bab6e599aa23e3f7dd4f0d5d0b216b1c",
+  "branching_artifact": "joao/models/branching/final_composite_branching.pkl",
+  "branching_sha256": "e364dce5e00b05d2f6afa1b0eee835cfd224c3884d82c7b2522a47778c6ae9af",
+  "branching_metadata": {
+    "training_log": "data/logData.xes",
+    "training_events": 1202267,
+    "training_cases": 31509,
+    "seed": 1,
+    "selected_validation_train_ratio": 0.7,
+    "selected_validation_evidence": "joao/results/final_predictive_model_split_comparison.csv",
+    "deployment_training_mode": "full_log_after_model_selection",
+    "predictive_training_dataset_mode": "bpmn_replay",
+    "bpmn_model": "models/v4_replay.bpmn",
+    "feature_columns": [
+      "case:ApplicationType",
+      "case:LoanGoal",
+      "case:RequestedAmount",
+      "CreditScore",
+      "EventOrigin",
+      "org:resource"
+    ],
+    "composite_hierarchy": [
+      "PredictiveBranchingEngine",
+      "AttributeSamplingBranchingEngine",
+      "AttributeBasedBranchingEngine",
+      "ProbabilityBranchingEngine"
+    ],
+    "sklearn_version": "1.8.0",
+    "runtime_state_persisted": false
+  },
+  "processing_time_artifact": "joao/models/process_time/final_process_time_coverage_v2.pkl",
+  "processing_time_sha256": "c540304cdbb6f60159ad1023112e6d5e71aeecae68b885ee2e2b1ac3c826a886"
+}

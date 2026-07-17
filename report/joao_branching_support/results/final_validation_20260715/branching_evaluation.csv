@@ -1,0 +1,3 @@
+split,case_limit,decision_observations,synchronized_observations,skipped_observations,coverage,exact_transition_accuracy_identifiable,coverage_adjusted_accuracy,macro_f1,weighted_f1,log_loss,top_k_accuracy,fallback_rate,unseen_class_rate,ambiguous_mapping_rate
+train,500,1719,1219,500,0.7091332169866201,1.0,0.7091332169866201,,,,,,,0.0
+held_out_test,200,685,485,200,0.708029197080292,1.0,0.708029197080292,,,,,,,0.0
