@@ -110,27 +110,11 @@ $$M' = (M - \bullet t) + t\bullet$$
 \textit{(Joao, 1.5)}\quad
 \input{sections/branching_joao}
 
-\input{sections/resource_modeling}
-
-\subsection{Evaluation}\label{subsec:part1eval}
-
-\subsubsection{Engine Core}
-\textit{(Thomas)}\quad
-
-\subsubsection{Case Arrivals}
-\textit{(Can Güleç)}\quad
-
-\subsubsection{Processing Times}
-\textit{(Thomas)}\quad
-
-\subsubsection{Process Model Conformance}
-\textit{(Cam)}\quad
-
-\subsubsection{Branching Decisions}
+\subsubsection{Evaluation}
 \textit{(Joao)}\quad
 \input{sections/branching_eval_joao}
 
-\input{sections/part1_evaluation}
+\input{sections/resource_modeling}
 
 \section{Optimization (Part~II)}\label{sec:opt}
 
@@ -157,14 +141,6 @@ $$M' = (M - \bullet t) + t\bullet$$
 \textit{(Joao, A)}\quad
 \input{sections/base_heuristics_eval_joao}
 
-\subsubsection{Batch Allocation}
-\textit{(Can Güleç)}\quad
-In the batch allocation engine, a threshold-based batching strategy was implemented for resource allocation. We place the new created tasks in an internal buffer until a predetermined number of tasks (the batch size) (in our implementation:$$k_{\text{limit}} = 5$$) is reached, instead of allocating resources to tasks immediately upon creation. Once there are enough tasks in the buffer, the engine attempts to allocate resources to the entire batch of tasks.
-
-During batch allocation, each task is allocated to the first available resource capable of performing the required activity. Once allocated, a given resource cannot be allocated again within the same batch. This ensures that simultaneous allocations to the same resource are avoided. If a task cannot be allocated (because there are no suitable resources available), it remains in the buffer and will be reconsidered during the next allocation cycle.
-
-To ensure that no tasks remain unprocessed at the end of the simulation, there is a "flush" function included in the engine that forcefully allocates all remaining buffered tasks regardless of whether or not the batch size has been met.
-
 \subsubsection{Kunkler Formalization}
 \textit{(Thomas, C)}\quad
 
@@ -181,7 +157,7 @@ To ensure that no tasks remain unprocessed at the end of the simulation, there i
 \subsubsection{Slide-23 Question}
 \textit{(Can Güleç, Slide 23 Scenario Analysis)}\quad
 
-\subsubsection{Resource Selection}
+\paragraph{Resource Selection}
 The question we selected to answer is the first one on slide 23. The management wants us to fire two employees. To address this request, we ranked all 149 resources by their occupation (busy time divided by available time), using the resource availability calendars learned in Task 1.6. Before selecting the least utilized resources, we excluded two categories:
 \begin{itemize}
     \item {User\_1} was excluded because it is not a valid employee. Although its occupation is nearly zero, it generated over 148000 log events consisting almost entirely of automatic system activities and queue offers.
@@ -196,7 +172,7 @@ The resources we selected to remove are
     \item \textbf{User\_108:} 2.4\% occupation, 753 logged events, authorized for
     23 of 26 activities.
 \end{itemize}
-\subsubsection{Impact on Metrics}
+\paragraph{Impact on Metrics}
 To evaluate the effect of removing the selected resources, the simulation was rerun after excluding User\_76 and User\_108 from the resource pool. The following table summarizes the results: ,
 \begin{table}[H]
 \centering
