@@ -15,7 +15,7 @@ class AllocationContext:
     event: object = None                                  # event being allocated (activity, case, ...)
     busy: set[str] = field(default_factory=set)           # resources currently busy
     load: dict[str, float] = field(default_factory=dict)  # cumulative work per resource so far
-    busy_activity: dict[str, str] = field(default_factory=dict)  # resource -> activity it runs (eta, Part 2: Task 1.1 (advanced)  RL state)
+    busy_activity: dict[str, str] = field(default_factory=dict)  # resource -> activity it runs (eta, Task D RL state)
 
 
 class AllocationStrategy:

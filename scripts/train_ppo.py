@@ -1,4 +1,4 @@
-# 1.1 (Part 2) advanced: paper-faithful PPO allocation policy (Middelhuis et al. 2025), trained
+# 1.1 (Part 2) D advanced: paper-faithful PPO allocation policy (Middelhuis et al. 2025), trained
 # with MaskablePPO (sb3-contrib) on a discrete-event BPIC-17 simulation (state 2|R|+|A|, action
 # |R|*|A|+1 with masking, cycle-time reward plus a potential-based load-Gini fairness shaping).
 # Deployed via optimization.ppo_agent.PPOAllocation onto the integrated SimulationEngineCore.
@@ -29,7 +29,7 @@ class GymAllocationEnv(gym.Env):
     # Paper-faithful MDP (state 2R+A, action R*A+1 with masking, cycle-time reward).
     def __init__(self, cfg, max_steps=800, mean_interarrival_s=1000.0,  # calibrated to real ~1002 s
                  min_case_len=8, max_case_len=21, max_postpone=3, ct_scale_s=3600.0, seed=0,
-                 interarrival_scale=1.0, w_fair=1.0):
+                 interarrival_scale=1.0, w_fair=1.0, w_postpone=0.5):
         super().__init__()
         self.permitted = {a: list(rs) for a, rs in cfg["permitted"].items()}
         self.calendars = cfg["calendars"]
@@ -55,6 +55,7 @@ class GymAllocationEnv(gym.Env):
         self.max_postpone = max_postpone
         self.ct_scale_s = ct_scale_s
         self.w_fair = w_fair
+        self.w_postpone = w_postpone
         self._seed = seed
 
         # action = resource i -> activity j  (index i*A + j), or postpone (index R*A)
@@ -217,6 +218,7 @@ class GymAllocationEnv(gym.Env):
 
         if action == R * A:                                   # postpone
             self.postpones += 1
+            self._pending -= self.w_postpone                  # cost of waiting (prevents degenerate all-postpone)
             if self._decision is not None and self.postpones > self.max_postpone:
                 cid, a, cands = self._decision                # safeguard: force least-loaded assignment
                 r = min(cands, key=lambda r: self.load[r])

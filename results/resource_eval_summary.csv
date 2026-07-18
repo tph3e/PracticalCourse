@@ -5,4 +5,4 @@ task,metric,basic,advanced
 1.7 permissions,activities covered (no deadlock),26/26,26/26
 1.7 permissions,"extra role-based (act,res) permissions",0,872
 1.7 permissions,"held-out (act,res) recall (temporal split)",77.4%,77.8%
-1.8 allocation,uniformity chi-square p-value (40k draws),-,nan
+1.8 allocation,uniformity chi-square p-value (40k draws),-,0.390

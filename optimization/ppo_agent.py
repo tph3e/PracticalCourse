@@ -1,11 +1,15 @@
-# 1.1 (advanced)
-# 
 # Deploy the paper-faithful MaskablePPO policy (trained on GymAllocationEnv, scripts/train_ppo.py)
 # as a swappable allocation strategy on the integrated simulator.
 #
 # Training MDP: global (resource, activity)-pair action space, 2R+A state (delta | eta | kappa).
-# 
-# sb3 is imported lazily.
+# The engine's pick(candidates, context) is per-task, so we deploy by a per-task reduction: the
+# action mask is restricted to the (., a_current) pairs for the activity being allocated, so the
+# policy chooses the resource for the current task (or postpone -> None).
+#
+# delta and eta are reconstructed from the AllocationContext. kappa (the global queue of unassigned
+# instances per activity) is NOT observable at a single pick(), so it is reduced to the one locally
+# known waiting instance. This reduced-observation deployment is disclosed in the report. The full
+# kappa evaluation lives in the paper DES (scripts/train_ppo.py). sb3 is imported lazily.
 
 from __future__ import annotations
 

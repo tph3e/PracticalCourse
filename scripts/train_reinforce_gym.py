@@ -185,15 +185,16 @@ def main():
             ax.plot(sub.w_fair, sub[col], marker="o", color=c, label=m)
         ax.set_xlabel("training $w_{\\mathrm{fair}}$"); ax.set_title(title); ax.set_xticks(W_FAIRS)
     rf = df[df.method == "REINFORCE"].set_index("w_fair")
-    for w in W_FAIRS:
-        if np.isnan(rf.loc[w, "cycle_time_h"]):
-            axes[1].annotate("no\ncompletions", (w, rf.loc[w, "load_gini"]), fontsize=6,
-                             ha="center", va="bottom", color="tab:green",
-                             xytext=(0, 6), textcoords="offset points")
-    axes[0].text(0.30, 0.97, "REINFORCE completes no cases at $w_{\\mathrm{fair}}\\geq1$\n"
-                 "(degenerate; its low Gini is not a real fairness gain)",
-                 transform=axes[0].transAxes, fontsize=6, va="top",
-                 bbox=dict(boxstyle="round", fc="white", ec="0.7", alpha=0.9))
+    if rf["cycle_time_h"].isna().any():                        # only annotate an actual collapse
+        for w in W_FAIRS:
+            if np.isnan(rf.loc[w, "cycle_time_h"]):
+                axes[1].annotate("no\ncompletions", (w, rf.loc[w, "load_gini"]), fontsize=6,
+                                 ha="center", va="bottom", color="tab:green",
+                                 xytext=(0, 6), textcoords="offset points")
+        axes[0].text(0.30, 0.97, "REINFORCE completes no cases at $w_{\\mathrm{fair}}\\geq1$\n"
+                     "(degenerate; its low Gini is not a real fairness gain)",
+                     transform=axes[0].transAxes, fontsize=6, va="top",
+                     bbox=dict(boxstyle="round", fc="white", ec="0.7", alpha=0.9))
     axes[1].legend(fontsize=6, loc="center right")
     fig.tight_layout(); fig.savefig("results/wfair_sensitivity.png", dpi=120)
     print("saved -> results/wfair_sensitivity.csv, results/wfair_sensitivity.png", flush=True)

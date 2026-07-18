@@ -1,10 +1,10 @@
-# 1.1 (advanced)  RL (Part 2)
-# 
 # Task D/E: reproducible multi-seed integrated-simulator sweep.
-# Runs scripts/compare_on_sim.py once per seed (MaskablePPO included) 
+# Runs scripts/compare_on_sim.py once per seed (MaskablePPO included) and writes
+# results/ms_seed{s}.csv. Labels come from compare_on_sim, not a post-hoc notebook rename.
 # Also records the protocol to results/ms_seed_config.json for reproducibility.
 #
-# Run with the sb3 venv, from the repo root: .venv-ppo/bin/python scripts/run_sim_sweep.py
+# Run with the sb3 venv, from the repo root:
+#   PYTHONPATH=. .venv-ppo/bin/python scripts/run_sim_sweep.py
 # Env knobs: SEEDS="1 2 3 4 5", ARRIVAL_SCALE (default 0.5 = congested), PPO_MODEL, RL_POLICY.
 
 from __future__ import annotations

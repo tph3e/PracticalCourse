@@ -1,0 +1,19 @@
+w_fair,method,cycle_time_h,load_gini
+0.0,random,4.88,0.267
+1.0,random,4.88,0.267
+5.0,random,4.88,0.267
+0.0,round-robin,4.83,0.263
+1.0,round-robin,4.83,0.263
+5.0,round-robin,4.83,0.263
+0.0,shortest-queue,4.75,0.164
+1.0,shortest-queue,4.75,0.164
+5.0,shortest-queue,4.75,0.164
+0.0,most-experienced,4.6,0.397
+1.0,most-experienced,4.6,0.397
+5.0,most-experienced,4.6,0.397
+0.0,REINFORCE,5.02,0.366
+0.0,PPO (MaskablePPO),4.77,0.419
+1.0,REINFORCE,4.76,0.407
+1.0,PPO (MaskablePPO),5.14,0.378
+5.0,REINFORCE,4.9,0.352
+5.0,PPO (MaskablePPO),4.86,0.396

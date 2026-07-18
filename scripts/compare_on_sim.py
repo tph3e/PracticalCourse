@@ -1,4 +1,4 @@
-# 1.2 (Part 2): cross-method allocation comparison on the INTEGRATED simulator.
+# 1.2 (Part 2) F bridge: cross-method allocation comparison on the INTEGRATED simulator.
 # Runs the sim core once per strategy on an identical seed and window so only pick() differs,
 # then scores each log with optimization.metrics.compare_on_sim.
 
