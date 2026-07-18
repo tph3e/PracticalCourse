@@ -21,7 +21,15 @@ PATH_LOG_TRAINING = "data/BPI Challenge 2017.xes"
 
 class ProcessTimeEngine:
 
-    def __init__(self, log=None, seed=1, waiting_advanced=True, processing_advanced=True, metricProcessing=False):
+    def __init__(
+        self,
+        log=None,
+        seed=1,
+        waiting_advanced=True,
+        processing_advanced=True,
+        metricProcessing=False,
+        model_path=None,
+    ):
         self.metricProcessing=metricProcessing
         if metricProcessing:
             return
@@ -37,13 +45,15 @@ class ProcessTimeEngine:
         self.models_advanced = {}
         self.fallback_models_basic = {}
         #if the models are already trained they do not have to be retrained
-        if os.path.exists(PATH_MODELS):
-            models = joblib.load(PATH_MODELS)
+        path_models = model_path or PATH_MODELS
+        if os.path.exists(path_models):
+            models = joblib.load(path_models)
             self.models_basic = models["basic"]
             self.models_quantiles = models["quantiles"]
             self.models_advanced = models["advanced"]
             self.fallback_models_basic = models.get("fallback_basic", {})
-            print("[ProcessTimeEngine] Loaded models successfully")
+            self.model_path = path_models
+            print(f"[ProcessTimeEngine] Loaded models successfully from {path_models}")
             return
         
         else:
@@ -269,11 +279,11 @@ class ProcessTimeEngine:
         else:
             return self.sampleTime_basic(event.activity, event.resource, "processing")
         
-    def getWaitingTime(self, event: Event) -> timedelta:
+    def getWaitingTime(self, event: Event, activity: str | None = None) -> timedelta:
         if self.waiting_advanced:
-            return self.sampleTime_advanced(event, "waiting")
+            return self.sampleTime_advanced(event, "waiting", activity=activity)
         else:
-            return self.sampleTime_basic(event.activity, event.resource, "waiting")
+            return self.sampleTime_basic(activity or event.activity, event.resource, "waiting")
            
 
     def sampleTime_basic(self, activity, resource="", kind="processing") -> timedelta:
@@ -289,18 +299,19 @@ class ProcessTimeEngine:
         else:
             return timedelta(0)
     
-    def sampleTime_advanced(self, event: Event, kind="processing") -> timedelta:        
+    def sampleTime_advanced(self, event: Event, kind="processing", activity: str | None = None) -> timedelta:        
+        activity_name = activity or event.activity
         if kind not in self.models_advanced:
-            return self.sampleTime_basic(event.activity, event.resource, kind)
+            return self.sampleTime_basic(activity_name, event.resource, kind)
         
         context_df = pd.DataFrame([{
-            "concept:name": event.activity,
+            "concept:name": activity_name,
             "case:RequestedAmount": float(event.eventCase.requestedAmount),
             "case:ApplicationType": str(event.eventCase.applicationType),
             "hour_of_day": event.time.hour,
             "weekday": event.time.weekday(),
             "org:resource": str(event.resource),
-            "rework_count": event.eventCase.getActivityCount(event.activity)
+            "rework_count": event.eventCase.getActivityCount(activity_name)
         }])
         predicted_seconds = self.models_advanced[kind].predict(context_df)[0]
         predicted_seconds = max(0.0, float(predicted_seconds))

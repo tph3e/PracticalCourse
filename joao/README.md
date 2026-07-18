@@ -95,6 +95,8 @@ python3 joao/scripts/resource_allocation/run_full_method_audit.py
 
 Artifacts:
 
+- `joao/models/branching/composite_branching_evaluation_train70_rfopt_v1.pkl`
+- `joao/models/branching/composite_branching_deployment_full_rfopt_v1.pkl`
 - `joao/models/branching/final_composite_branching_sklearn190.pkl`
 - `joao/models/process_time/final_process_time_coverage_v2.pkl`
 - `joao/results/full_method_audit/`
