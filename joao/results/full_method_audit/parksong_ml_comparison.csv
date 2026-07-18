@@ -1,8 +1,8 @@
 variant,strategy_class,decision,assignment_valid,reservation_precision,reservation_utilization,unnecessary_reservations,stale_reservations,resource_conflicts_avoided,waiting_time,future_task_service_delay,objective_score,runtime_per_decision_seconds,prediction_source,training_calls
-ParkSong_oracle,ParkSongAllocation,R1:reservation::B:C_future|R2:assignment:T1:A:C_T1,True,1.0,controlled_snapshot_only,0,0,1,0.0,0.1,,2.2166999769979157e-05,explicit,0
-ParkSong_probability,ParkSongAllocation,R1:reservation::B:C_future|R2:assignment:T1:A:C_T1,True,1.0,controlled_snapshot_only,0,0,1,0.0,0.1,,1.2167000022600405e-05,explicit,0
-ParkSong_no_prediction,ParkSongAllocation,R1:idle:::|R2:assignment:T1:A:C_T1,True,0.0,controlled_snapshot_only,0,0,1,0.0,,,9.04199987417087e-06,none,0
-Random,RandomResourceAllocation,R1:assignment:T1:A:C_T1|R2:idle:::,True,0.0,controlled_snapshot_only,0,0,1,0.0,,,2.9579987312899902e-06,explicit,0
-RoundRobin,RoundRobinResourceAllocation,R1:assignment:T1:A:C_T1|R2:idle:::,True,0.0,controlled_snapshot_only,0,0,1,0.0,,,3.417000698391348e-06,explicit,0
-ShortestQueue,ShortestQueueAllocation,R1:assignment:T1:A:C_T1|R2:idle:::,True,0.0,controlled_snapshot_only,0,0,1,0.0,,,4.833000275539234e-06,explicit,0
-ParkSongML_learned_predictions,ParkSongMLIntegration+ParkSongAllocation,R1:reservation::B:C_future|R2:assignment:T1:A:C_T1,True,1.0,controlled_snapshot_only,0,0,1,0.0,0.1,,0.0012841250008932548,MLPredictionAdapter,0
+ParkSong_oracle,ParkSongAllocation,R1:reservation::B:C_future|R2:assignment:T1:A:C_T1,True,1.0,controlled_snapshot_only,0,0,1,0.0,0.1,,1.9875000361935236e-05,explicit,0
+ParkSong_probability,ParkSongAllocation,R1:reservation::B:C_future|R2:assignment:T1:A:C_T1,True,1.0,controlled_snapshot_only,0,0,1,0.0,0.1,,1.2542000149551313e-05,explicit,0
+ParkSong_no_prediction,ParkSongAllocation,R1:idle:::|R2:assignment:T1:A:C_T1,True,0.0,controlled_snapshot_only,0,0,1,0.0,,,9.166999916487839e-06,none,0
+Random,RandomResourceAllocation,R1:assignment:T1:A:C_T1|R2:idle:::,True,0.0,controlled_snapshot_only,0,0,1,0.0,,,2.999999196617864e-06,explicit,0
+RoundRobin,RoundRobinResourceAllocation,R1:assignment:T1:A:C_T1|R2:idle:::,True,0.0,controlled_snapshot_only,0,0,1,0.0,,,3.707999894686509e-06,explicit,0
+ShortestQueue,ShortestQueueAllocation,R1:assignment:T1:A:C_T1|R2:idle:::,True,0.0,controlled_snapshot_only,0,0,1,0.0,,,5.083000360173173e-06,explicit,0
+ParkSongML_learned_predictions,ParkSongMLIntegration+ParkSongAllocation,R1:reservation::B:C_future|R2:assignment:T1:A:C_T1,True,1.0,controlled_snapshot_only,0,0,1,0.0,0.1,,0.007063957999889681,MLPredictionAdapter,0

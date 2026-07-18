@@ -1,46 +1,46 @@
 scenario,strategy,runs,all_valid,unique_decisions,mean_assignments,mean_reservations,mean_runtime_seconds,notes
-A_balanced_resources,Random,3,True,1,1.0,0.0,6.430666568727854e-06,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
-A_balanced_resources,RoundRobin,3,True,1,1.0,0.0,6.0280005224437145e-06,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
-A_balanced_resources,ShortestQueue,3,True,1,1.0,0.0,8.26399931005047e-06,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
-A_balanced_resources,ParkSong,3,True,1,1.0,0.0,3.1291667255572975e-05,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
-A_balanced_resources,BatchAllocation,3,True,1,1.0,0.0,1.8305667254026048e-05,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
-B_unequal_load,Random,3,True,1,1.0,0.0,2.2363340879868097e-06,ShortestQueue selects least loaded R3.
-B_unequal_load,RoundRobin,3,True,1,1.0,0.0,2.8333330798583725e-06,ShortestQueue selects least loaded R3.
-B_unequal_load,ShortestQueue,3,True,1,1.0,0.0,4.097333051807557e-06,ShortestQueue selects least loaded R3.
-B_unequal_load,ParkSong,3,True,1,1.0,0.0,1.1111000276287086e-05,ShortestQueue selects least loaded R3.
-B_unequal_load,BatchAllocation,3,True,1,1.0,0.0,6.805666392513861e-06,ShortestQueue selects least loaded R3.
-C_temporary_unavailability,Random,3,True,1,1.0,0.0,1.9996665893510603e-06,No strategy assigns unavailable R1.
-C_temporary_unavailability,RoundRobin,3,True,1,1.0,0.0,2.347333672029587e-06,No strategy assigns unavailable R1.
-C_temporary_unavailability,ShortestQueue,3,True,1,1.0,0.0,3.291666265189027e-06,No strategy assigns unavailable R1.
-C_temporary_unavailability,ParkSong,3,True,1,1.0,0.0,1.0735999846171277e-05,No strategy assigns unavailable R1.
-C_temporary_unavailability,BatchAllocation,3,True,1,1.0,0.0,6.0696669000511365e-06,No strategy assigns unavailable R1.
-D_permission_constraints,Random,3,True,1,1.0,0.0,2.236333481657008e-06,All methods use only R2 for activity A.
-D_permission_constraints,RoundRobin,3,True,1,1.0,0.0,2.8750000637955964e-06,All methods use only R2 for activity A.
-D_permission_constraints,ShortestQueue,3,True,1,1.0,0.0,3.2776667164095366e-06,All methods use only R2 for activity A.
-D_permission_constraints,ParkSong,3,True,1,1.0,0.0,7.9863330029184e-06,All methods use only R2 for activity A.
-D_permission_constraints,BatchAllocation,3,True,1,1.0,0.0,6.139000106486492e-06,All methods use only R2 for activity A.
-E_future_task_prediction,Random,3,True,1,1.0,0.0,1.5000005078036338e-06,ParkSong may reserve for B when its cost is lower than current A.
-E_future_task_prediction,RoundRobin,3,True,1,1.0,0.0,1.8613330515411992e-06,ParkSong may reserve for B when its cost is lower than current A.
-E_future_task_prediction,ShortestQueue,3,True,1,1.0,0.0,2.555333291335652e-06,ParkSong may reserve for B when its cost is lower than current A.
-E_future_task_prediction,ParkSong,3,True,1,1.0,0.0,9.208333115869513e-06,ParkSong may reserve for B when its cost is lower than current A.
-E_future_task_prediction,BatchAllocation,3,True,1,1.0,0.0,4.541333206968072e-06,ParkSong may reserve for B when its cost is lower than current A.
-F_wrong_prediction,Random,3,True,1,1.0,0.0,1.2916668007771175e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
-F_wrong_prediction,RoundRobin,3,True,1,1.0,0.0,1.6110000918464114e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
-F_wrong_prediction,ShortestQueue,3,True,1,1.0,0.0,2.083333432286357e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
-F_wrong_prediction,ParkSong,3,True,1,1.0,0.0,7.000332819491935e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
-F_wrong_prediction,BatchAllocation,3,True,1,1.0,0.0,4.055333799139286e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
-G_multiple_future_tasks,Random,3,True,1,2.0,0.0,2.347666547090436e-06,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
-G_multiple_future_tasks,RoundRobin,3,True,1,2.0,0.0,3.0003332843383155e-06,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
-G_multiple_future_tasks,ShortestQueue,3,True,1,2.0,0.0,4.6670005152312415e-06,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
-G_multiple_future_tasks,ParkSong,3,True,1,2.0,0.0,1.530533336335793e-05,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
-G_multiple_future_tasks,BatchAllocation,3,True,1,2.0,0.0,7.221999718846443e-06,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
-H_resource_pressure,Random,3,True,3,2.0,0.0,2.583333601554235e-06,More tasks than resources; no duplicate task/resource assignments.
-H_resource_pressure,RoundRobin,3,True,1,2.0,0.0,3.4026664555616057e-06,More tasks than resources; no duplicate task/resource assignments.
-H_resource_pressure,ShortestQueue,3,True,1,2.0,0.0,5.3753331788660335e-06,More tasks than resources; no duplicate task/resource assignments.
-H_resource_pressure,ParkSong,3,True,1,2.0,0.0,2.1556001229328103e-05,More tasks than resources; no duplicate task/resource assignments.
-H_resource_pressure,BatchAllocation,3,True,1,2.0,0.0,8.791666914476082e-06,More tasks than resources; no duplicate task/resource assignments.
-I_zero_processing_duration_infrastructure,Random,3,True,1,1.0,0.0,1.8053324311040342e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
-I_zero_processing_duration_infrastructure,RoundRobin,3,True,1,1.0,0.0,2.291667139312873e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
-I_zero_processing_duration_infrastructure,ShortestQueue,3,True,1,1.0,0.0,2.8333324735285714e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
-I_zero_processing_duration_infrastructure,ParkSong,3,True,1,1.0,0.0,8.346999796534268e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
-I_zero_processing_duration_infrastructure,BatchAllocation,3,True,1,1.0,0.0,5.222000254434533e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
+A_balanced_resources,Random,3,True,1,1.0,0.0,5.777999831479974e-06,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
+A_balanced_resources,RoundRobin,3,True,1,1.0,0.0,5.639000240383514e-06,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
+A_balanced_resources,ShortestQueue,3,True,1,1.0,0.0,7.389000226491286e-06,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
+A_balanced_resources,ParkSong,3,True,1,1.0,0.0,2.9208333520121716e-05,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
+A_balanced_resources,BatchAllocation,3,True,1,1.0,0.0,1.8791666661854833e-05,Random seed-dependent; RoundRobin starts at R1; ShortestQueue tie-breaks by resource id; ParkSong assigns current task without relevant prediction.
+B_unequal_load,Random,3,True,1,1.0,0.0,2.4303329458537823e-06,ShortestQueue selects least loaded R3.
+B_unequal_load,RoundRobin,3,True,1,1.0,0.0,3.208000331748432e-06,ShortestQueue selects least loaded R3.
+B_unequal_load,ShortestQueue,3,True,1,1.0,0.0,4.208333242180136e-06,ShortestQueue selects least loaded R3.
+B_unequal_load,ParkSong,3,True,1,1.0,0.0,1.1499999952017484e-05,ShortestQueue selects least loaded R3.
+B_unequal_load,BatchAllocation,3,True,1,1.0,0.0,6.985999789321795e-06,ShortestQueue selects least loaded R3.
+C_temporary_unavailability,Random,3,True,1,1.0,0.0,2.0969998028400974e-06,No strategy assigns unavailable R1.
+C_temporary_unavailability,RoundRobin,3,True,1,1.0,0.0,2.5833332983893342e-06,No strategy assigns unavailable R1.
+C_temporary_unavailability,ShortestQueue,3,True,1,1.0,0.0,3.347333101070641e-06,No strategy assigns unavailable R1.
+C_temporary_unavailability,ParkSong,3,True,1,1.0,0.0,1.0971999775695926e-05,No strategy assigns unavailable R1.
+C_temporary_unavailability,BatchAllocation,3,True,1,1.0,0.0,5.972333080232299e-06,No strategy assigns unavailable R1.
+D_permission_constraints,Random,3,True,1,1.0,0.0,2.3476662439255356e-06,All methods use only R2 for activity A.
+D_permission_constraints,RoundRobin,3,True,1,1.0,0.0,2.9859999510032744e-06,All methods use only R2 for activity A.
+D_permission_constraints,ShortestQueue,3,True,1,1.0,0.0,3.527999979269225e-06,All methods use only R2 for activity A.
+D_permission_constraints,ParkSong,3,True,1,1.0,0.0,8.722333101710925e-06,All methods use only R2 for activity A.
+D_permission_constraints,BatchAllocation,3,True,1,1.0,0.0,5.9859997539509395e-06,All methods use only R2 for activity A.
+E_future_task_prediction,Random,3,True,1,1.0,0.0,1.5136668783573743e-06,ParkSong may reserve for B when its cost is lower than current A.
+E_future_task_prediction,RoundRobin,3,True,1,1.0,0.0,1.7779999931614536e-06,ParkSong may reserve for B when its cost is lower than current A.
+E_future_task_prediction,ShortestQueue,3,True,1,1.0,0.0,2.499666455454038e-06,ParkSong may reserve for B when its cost is lower than current A.
+E_future_task_prediction,ParkSong,3,True,1,1.0,0.0,8.694666576047894e-06,ParkSong may reserve for B when its cost is lower than current A.
+E_future_task_prediction,BatchAllocation,3,True,1,1.0,0.0,4.749666913994588e-06,ParkSong may reserve for B when its cost is lower than current A.
+F_wrong_prediction,Random,3,True,1,1.0,0.0,1.4029998662105452e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
+F_wrong_prediction,RoundRobin,3,True,1,1.0,0.0,1.6526667726187345e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
+F_wrong_prediction,ShortestQueue,3,True,1,1.0,0.0,2.1246669348329306e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
+F_wrong_prediction,ParkSong,3,True,1,1.0,0.0,6.666666801417402e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
+F_wrong_prediction,BatchAllocation,3,True,1,1.0,0.0,5.375000000640284e-06,Snapshot reservation remains a decision; lifecycle cancellation is integration-owned.
+G_multiple_future_tasks,Random,3,True,1,2.0,0.0,2.38900035280191e-06,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
+G_multiple_future_tasks,RoundRobin,3,True,1,2.0,0.0,3.0693333125479208e-06,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
+G_multiple_future_tasks,ShortestQueue,3,True,1,2.0,0.0,5.0279998807430575e-06,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
+G_multiple_future_tasks,ParkSong,3,True,1,2.0,0.0,1.690299995971145e-05,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
+G_multiple_future_tasks,BatchAllocation,3,True,1,2.0,0.0,7.0693331508664414e-06,ParkSong compares current and predicted candidates per available resource with used-candidate tracking.
+H_resource_pressure,Random,3,True,3,2.0,0.0,2.8193332279139818e-06,More tasks than resources; no duplicate task/resource assignments.
+H_resource_pressure,RoundRobin,3,True,1,2.0,0.0,3.7223332280215495e-06,More tasks than resources; no duplicate task/resource assignments.
+H_resource_pressure,ShortestQueue,3,True,1,2.0,0.0,6.3333330520739155e-06,More tasks than resources; no duplicate task/resource assignments.
+H_resource_pressure,ParkSong,3,True,1,2.0,0.0,2.1944333335947402e-05,More tasks than resources; no duplicate task/resource assignments.
+H_resource_pressure,BatchAllocation,3,True,1,2.0,0.0,9.222333270978803e-06,More tasks than resources; no duplicate task/resource assignments.
+I_zero_processing_duration_infrastructure,Random,3,True,1,1.0,0.0,1.9029997323135224e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
+I_zero_processing_duration_infrastructure,RoundRobin,3,True,1,1.0,0.0,2.444333404127974e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
+I_zero_processing_duration_infrastructure,ShortestQueue,3,True,1,1.0,0.0,3.389000085007865e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
+I_zero_processing_duration_infrastructure,ParkSong,3,True,1,1.0,0.0,9.18066659020648e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
+I_zero_processing_duration_infrastructure,BatchAllocation,3,True,1,1.0,0.0,5.375333785195835e-06,Allocation decision is independent of scheduler duration; guard is simulator-level.
