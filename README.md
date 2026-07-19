@@ -49,11 +49,23 @@ Additionally, allocation and optimization tasks are implemented.
 └── SimulationEngineCore.py   # Part I: task 1.1 (Core)
 ```
 
-### Setup
+## Setup
 The _requirements.txt_ contains all dependencies necessary to execute the project.
+
+### Core simulator (Part I + most of Part II)
 
 **bash:** 
 
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+
+### RL training / deployment (Part II) 
+- torch + Stable-Baselines3 are only imported by scripts/train_ppo.py,
+- scripts/train_reinforce_gym.py and optimization/ppo_agent.py.
+
+**bash:** 
+
+python3 -m venv .venv-ppo
+source .venv-ppo/bin/activate
+pip install -r requirements.txt -r requirements-ppo.txt
