@@ -20,26 +20,39 @@ SECONDS_PER_WEEK = 7 * 24 * 3600
 
 # helpers
 def activity_durations(log_df: pd.DataFrame) -> pd.DataFrame:
-    #  Pair start/complete events per (case, activity, occurrence) -> durations.
+    #  Pair each "complete" with the MOST RECENT preceding "start"/"resume" of the
+    #  same (case, activity) work item, so busy time is the active segment only.
 
+    # A resumed activity is timed from its resume event: the suspend->resume gap is
+    # waiting, not busy. Real BPIC-17 work items look like start -> (suspend -> resume)*
+    # -> complete, so pairing the FIRST start with the complete (a plain per-occurrence
+    # cumcount merge) would fold every suspension into the "busy" span and inflate
+    # occupation; the simulator log emits resume -> complete without a "start" and is
+    # handled by the same rule. Instantaneous state events (only a "complete", e.g.
+    # A_/O_ activities) have no preceding open and are dropped.
     df = log_df[[CASE, ACT, RES, TS, LC]].copy()
     df[TS] = pd.to_datetime(df[TS], utc=True)
+    df = df[df[LC].isin(["start", "resume", "complete"])].sort_values(TS)
 
-    # Work begins at a "start" or "resume" event. In the simulator log a suspended
-    # activity emits suspend -> resume -> complete with no "start", so pairing only
-    # start<->complete would drop every resumed instance. The suspend->resume gap
-    # is waiting, not busy.
-    s = df[df[LC].isin(["start", "resume"])].sort_values(TS).copy()
-    c = df[df[LC] == "complete"].sort_values(TS).copy()
-    s["occ"] = s.groupby([CASE, ACT]).cumcount()
-    c["occ"] = c.groupby([CASE, ACT]).cumcount()
+    # Split the events of each (case, activity) into work-item sessions terminated by a
+    # "complete": cumsum of the completes, shifted so each complete shares the session id
+    # of the opens that precede it.
+    is_complete = df[LC] == "complete"
+    df["session"] = (
+        is_complete.groupby([df[CASE], df[ACT]]).cumsum() - is_complete.astype(int)
+    )
 
-    merged = s.merge(c, on=[CASE, ACT, "occ"], suffixes=("_s", "_c"))
-    merged["duration_s"] = (merged[f"{TS}_c"] - merged[f"{TS}_s"]).dt.total_seconds()
+    opens = df[df[LC].isin(["start", "resume"])]
+    comps = df[is_complete]
+    open_last = opens.groupby([CASE, ACT, "session"]).agg(
+        start=(TS, "last"), resource=(RES, "last")  # the resume (or start) that timed it
+    )
+    comp_first = comps.groupby([CASE, ACT, "session"]).agg(complete=(TS, "first"))
+
+    merged = open_last.join(comp_first, how="inner").reset_index()
+    merged["duration_s"] = (merged["complete"] - merged["start"]).dt.total_seconds()
     merged = merged[merged["duration_s"] >= 0]
-    return merged.rename(
-        columns={f"{RES}_s": "resource", f"{TS}_s": "start", f"{TS}_c": "complete"}
-    )[[CASE, ACT, "resource", "start", "complete", "duration_s"]]
+    return merged[[CASE, ACT, "resource", "start", "complete", "duration_s"]]
 
 
 def busy_seconds(dur: pd.DataFrame) -> pd.Series:
