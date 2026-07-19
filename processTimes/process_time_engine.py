@@ -140,6 +140,7 @@ class ProcessTimeEngine:
                     
                     if len(times_data) >= 4 and np.unique(times_data).size > 1:
                         self.fallback_models_basic[f"{activity}_{kind}"] = self._fit_distribution(times_data, null_count)
+                self.models_median[f"{activity}"] = group["processing_time"].median()
 
             for (activity, resource), group in event_times.groupby(["concept:name", "org:resource"]):
 
@@ -405,6 +406,9 @@ class ProcessTimeEngine:
     def getMedian(self, activity, resource):
         if f"{activity}_{resource}" in self.models_median:
             return self.models_median[f"{activity}_{resource}"]
+        if not resource:
+            if f"{activity}" in self.models_median:
+                return self.models_median[f"{activity}"]
         return 0
 
 if __name__ == "__main__":

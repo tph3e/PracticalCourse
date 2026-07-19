@@ -15,8 +15,8 @@ from typing import Optional
 import sys
 import joblib
 
-LOG_PATH = "data/BPI Challenge 2017.xes"
-#LOG_PATH = "data/generated_log.xes"
+#LOG_PATH = "data/BPI Challenge 2017.xes"
+LOG_PATH = "data/generated_log.xes"
 
 class ProcessLogAnalyzer:
     def __init__(self, 
@@ -183,7 +183,7 @@ class ProcessLogAnalyzer:
         subsequent_suspension_counts = window_end_indices - current_indices - 1
         r_susp = subsequent_suspension_counts.mean()
 
-        return round(r_susp,2)
+        return round(np.nan_to_num(round(r_susp,2), nan=0))
 
     def generate_report(self):
         
@@ -192,7 +192,7 @@ class ProcessLogAnalyzer:
                 "Avg Rework Rate (Self-Loops)": round(self.avg_rework_rate(), 2),
                 "Total processoral value": self.calculate_resource_criticality_score()["Resource_Criticality_Score"].sum(),
                 "Network Algebraic Connectivity (\u03BB\u2082)": self.calculate_algebraic_connectivity(),
-                "Efect of Suspensions": self.calculate_supsension_contagion()
+                "Effect of Suspensions": self.calculate_supsension_contagion()
             }
 
 if __name__ == "__main__":

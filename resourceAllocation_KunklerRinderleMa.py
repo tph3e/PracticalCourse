@@ -35,11 +35,12 @@ class AnticipatoryAssignmentAllocator(AllocationStrategy):
         for i, spec_resource in enumerate(all_resources+dummy_resources):
             for j, task in enumerate(waiting_tasks):
                 # Base performance cost
-                p_rt = self.processTimeEngine.getMedian(task.activity, spec_resource.resource_id)*self.delta
+                p_rt = self.processTimeEngine.getMedian(task.activity, None)*self.delta
                 
                 if task in waiting_tasks:
                     cost_matrix[i, j] = p_rt
                 else:
+                    p_rt = self.processTimeEngine.getMedian(task.activity, spec_resource.resource_id)
                     # Apply the weight 'w' to the expected waiting time
                     wait_time = max(0, task['enabled_time'] - current_time)
                     cost_matrix[i, j] = p_rt + (self.w * wait_time)
