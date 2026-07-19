@@ -1,15 +1,12 @@
-# Deploy the paper-faithful MaskablePPO policy (trained on GymAllocationEnv, scripts/train_ppo.py)
+# # 1.1 advanced: Deploy the paper-faithful MaskablePPO policy (trained on GymAllocationEnv, scripts/train_ppo.py)
 # as a swappable allocation strategy on the integrated simulator.
 #
 # Training MDP: global (resource, activity)-pair action space, 2R+A state (delta | eta | kappa).
-# The engine's pick(candidates, context) is per-task, so we deploy by a per-task reduction: the
-# action mask is restricted to the (., a_current) pairs for the activity being allocated, so the
-# policy chooses the resource for the current task (or postpone -> None).
+# The engine's pick(candidates, context) is per-task.
 #
-# delta and eta are reconstructed from the AllocationContext. kappa (the global queue of unassigned
-# instances per activity) is NOT observable at a single pick(), so it is reduced to the one locally
-# known waiting instance. This reduced-observation deployment is disclosed in the report. The full
-# kappa evaluation lives in the paper DES (scripts/train_ppo.py). sb3 is imported lazily.
+# delta and eta are reconstructed from the AllocationContext. kappa is not observable at a single pick(),
+# so it is reduced to the one locally
+
 
 from __future__ import annotations
 
@@ -47,14 +44,14 @@ class PPOAllocation(AllocationStrategy):
             i = self.res_index.get(r)
             if i is None:
                 continue
-            obs[i] = 1.0                                    # delta: busy
-            ba = busy_activity.get(r)                       # eta: which activity
+            obs[i] = 1.0                                    # delta
+            ba = busy_activity.get(r)                       # eta
             if ba in self.act_index:
                 obs[R + i] = (self.act_index[ba] + 1) / A
-        # kappa reduced: only the current activity's single locally-known waiting instance
+        # kappa 
         obs[2 * R + self.act_index[act]] = min(1 / 100.0, 1.0)
 
-        # per-task reduction: mask to (candidate resource, current activity) pairs + postpone
+        # per-task reduction
         j = self.act_index[act]
         mask = np.zeros(R * A + 1, dtype=bool)
         mask[R * A] = True                                  # postpone
@@ -65,7 +62,7 @@ class PPOAllocation(AllocationStrategy):
 
         action, _ = self.model.predict(obs, action_masks=mask, deterministic=True)
         a = int(np.asarray(action).flatten()[0])
-        if a == R * A:                                      # postpone -> core suspends/retries
+        if a == R * A:                                      # postpone 
             return None
         i = a // A
         chosen = self.resources[i] if 0 <= i < R else None
@@ -73,5 +70,5 @@ class PPOAllocation(AllocationStrategy):
 
     @classmethod
     def load(cls, model_path: str, calendars: dict, skill: dict, activity_mix: dict) -> "PPOAllocation":
-        from sb3_contrib import MaskablePPO       # lazy: sb3 only required when PPO is used
+        from sb3_contrib import MaskablePPO       
         return cls(MaskablePPO.load(model_path), calendars, skill, activity_mix)

@@ -17,15 +17,14 @@ from .metrics import gini as _gini
 
 N_FEATURES = 5  # load_norm, experience, availability_breadth, busy_fraction, is_postpone
 SECONDS_PER_WEEK = 7 * 24 * 3600
-W_FAIR = 5.0  # weight balancing the fairness objective against the CT reward
+W_FAIR = 5.0  # weight balancing the fairness 
 
 
 def build_features(candidates, activity, load, calendars, skill, max_cal, busy_fraction=0.0):
     # Feature matrix [n_candidates + 1, N_FEATURES]. Last row = postpone action.
 
     # Shared by the env (training) and RLAllocation (inference) so the policy sees identical
-    # inputs. busy_fraction is a congestion signal. The postpone row summarizes the best
-    # available alternative, so the agent can learn to wait when candidates are poor.
+    # inputs.
     
     n = len(candidates)
     feats = np.zeros((n + 1, N_FEATURES))
@@ -116,20 +115,20 @@ class AllocationEnv:
         skill: dict,
         base_proc_s: dict,
         activity_mix: dict,
-        arrival=None,           # 2B: ArrivalEngine (interarrival distribution)
-        proc=None,              # 2B: ProcessTimeEngine (processing/waiting distributions)
-        case_pool=None,         # 2A: pool of valid BPMN case sequences
+        arrival=None,           # ArrivalEngine 
+        proc=None,              # ProcessTimeEngine 
+        case_pool=None,         # pool of valid BPMN case sequences
         seed: int = 0,
         max_steps: int = 600,
-        mean_interarrival_s: float = 1000.0,   # calibrated to real BPIC-17 (~1002 s)
-        min_case_len: int = 8,                  # calibrated: real ~15 activities/case
+        mean_interarrival_s: float = 1000.0,   # calibrated to real BPIC-17 (1000 s)
+        min_case_len: int = 8,                  
         max_case_len: int = 21,
         max_postpone: int = 3,
         ct_scale_s: float = 3600.0,
-        interarrival_scale: float = 1.0,        # load knob: <1 = more congestion
-        progress_reward: float = 1.0,           # per-allocation throughput incentive (allocate > postpone)
+        interarrival_scale: float = 1.0,        
+        progress_reward: float = 1.0,           
         w_fair: float = 1.0,                    # dense scale-invariant fairness weight
-        w_ct: float = 1.0,                      # cycle-time (completion) weight
+        w_ct: float = 1.0,                      # cycle-time weight
     ):
         self.permitted = {a: list(rs) for a, rs in permitted.items()}
         self.calendars = calendars

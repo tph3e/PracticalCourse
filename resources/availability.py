@@ -65,7 +65,7 @@ class AvailabilityModel:
                 for res, buckets in raw.items()
             }
 
-        # resource universe (basic mode). Advanced mode draws it from calendars
+        # resource universe (basic). Advanced mode draws it from calendars
         if self.calendars is not None:
             self._all_resources: set[str] = set(self.calendars.keys())
         elif log is not None:
@@ -85,7 +85,7 @@ class AvailabilityModel:
 
     def who_is_available(self, time: datetime) -> set[str]:
         if time is None:
-            return self._all_resources  # no time context (dummy run) -> all
+            return self._all_resources  
 
         if self.calendars is not None:  # advanced: per-resource learned calendar
             bucket = (time.weekday(), time.hour)

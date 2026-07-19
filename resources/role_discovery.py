@@ -20,10 +20,10 @@ def discover_roles(
     resource_col: str = "org:resource",
 ) -> tuple[dict[str, list[str]], dict]:
     
-    # Discover resource groups and derive an activity->resources permission map.
+    # Discover resource groups 
     df = slim_df[[resource_col, activity_col]].dropna().astype(str)
 
-    # resource x activity count matrix -> row-normalized profiles
+    # resource x activity count matrix 
     counts = pd.crosstab(df[resource_col], df[activity_col])
     profiles = counts.div(counts.sum(axis=1), axis=0).fillna(0.0)
 
@@ -33,8 +33,7 @@ def discover_roles(
     labels = AgglomerativeClustering(n_clusters=k).fit_predict(profiles.values)
 
     # floor: a resource that performed an activity is always permitted it, so no
-    # activity ends up with zero permitted resources (no deadlock). Roles only
-    # generalize beyond this floor to other members of the same group.
+    # activity ends up with zero permitted resources (no deadlock).
     activity_to_resources: dict[str, set[str]] = {
         a: set(counts.index[counts[a] > 0].astype(str)) for a in activities
     }

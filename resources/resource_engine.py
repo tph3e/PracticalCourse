@@ -23,16 +23,15 @@ class ResourceEngine:
 
     def set_allocation(self, strategy) -> None:
         # Swap the 1.8 allocation strategy (Part 2: heuristics, batch, RL policy).
-        # The core keeps calling allocateResource unchanged, only pick() differs.
         self.allocation = strategy
 
     def allocateResource(self, event) -> bool:
-        # Try to assign a resource to "event". Returns True on success.
+        # Try to assign a resource to event. 
 
         eligible = self.permissions.who_can(event.activity)         # 1.7
         available = self.availability.who_is_available(event.time)  # 1.6
         candidates = (eligible & available) - self.busy
-        # context lets Part II strategies (push heuristics, RL) see runtime state
+        # context lets Part 2 strategies (push heuristics, RL) 
         context = AllocationContext(
             time=getattr(event, "time", None),
             event=event,
@@ -45,7 +44,7 @@ class ResourceEngine:
             return False
         self.busy.add(chosen)
         self.load[chosen] = self.load.get(chosen, 0) + 1
-        self.busy_activity[chosen] = getattr(event, "activity", None)  # eta
+        self.busy_activity[chosen] = getattr(event, "activity", None)  
         event.resource = chosen
         return True
 

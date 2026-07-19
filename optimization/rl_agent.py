@@ -10,7 +10,7 @@ from resources.allocation import AllocationStrategy
 from .environment import AllocationEnv, build_features, N_FEATURES
 
 
-# policy network (numpy MLP: features -> hidden(tanh) -> scalar score)
+# policy network 
 class PolicyNet:
     def __init__(self, n_features: int = N_FEATURES, hidden: int = 16, seed: int = 0):
         rng = np.random.default_rng(seed)
@@ -20,7 +20,6 @@ class PolicyNet:
         self.b2 = np.zeros(1)
 
     def forward(self, X: np.ndarray):
-    #    X: [n_candidates, n_features] -> (probs[n], hidden[n,h]).
         H = np.tanh(X @ self.W1 + self.b1)
         s = (H @ self.W2 + self.b2).ravel()
         s = s - s.max()
@@ -39,8 +38,7 @@ class PolicyNet:
         return net
 
 
-# REINFORCE gradient step from a recorded trajectory, shared by train() and the 2C sim-in-the-loop trainer.
-# traj entries are (X, action, hidden, probs, reward), baseline is a running mean (None on the first call). Returns the updated baseline.
+# REINFORCE gradient step from a recorded trajectory
 def reinforce_update(net, traj, baseline=None, lr=0.02, gamma=0.99, entropy_beta=0.01):
     if not traj:
         return baseline
@@ -60,9 +58,9 @@ def reinforce_update(net, traj, baseline=None, lr=0.02, gamma=0.99, entropy_beta
     gW1 = np.zeros_like(net.W1); gb1 = np.zeros_like(net.b1)
     gW2 = np.zeros_like(net.W2); gb2 = np.zeros_like(net.b2)
     for (X, a, H, p, _), A in zip(traj, adv):
-        ds = -p.copy(); ds[a] += 1.0          # d log pi(a) / d scores
+        ds = -p.copy(); ds[a] += 1.0         
         ds *= A                               # weight by advantage
-        if entropy_beta and len(p) > 1:       # entropy bonus -> exploration
+        if entropy_beta and len(p) > 1:       # entropy bonus
             Hp = -(p * np.log(p + 1e-9)).sum()
             ds += entropy_beta * (-(np.log(p + 1e-9) + Hp) * p)
         ds_col = ds.reshape(-1, 1)
@@ -72,13 +70,12 @@ def reinforce_update(net, traj, baseline=None, lr=0.02, gamma=0.99, entropy_beta
         gW1 += X.T @ dH
         gb1 += dH.sum(axis=0)
 
-    # gradient ASCENT on E[log pi * advantage]
     net.W1 += lr * gW1; net.b1 += lr * gb1
     net.W2 += lr * gW2; net.b2 += lr * gb2
     return baseline
 
 
-# REINFORCE training (standalone env)
+# REINFORCE training 
 def train(cfg, episodes=300, hidden=16, lr=0.02, gamma=0.99, ep_len=1000, seed=0,
           entropy_beta=0.01, log_every=0):
     net = PolicyNet(N_FEATURES, hidden, seed)
@@ -130,8 +127,8 @@ class RLAllocation(AllocationStrategy):
         busy_fraction = len(getattr(context, "busy", ())) / n_res if context is not None else 0.0
         X = build_features(cands, activity, load, self.calendars, self.skill, self.max_cal, busy_fraction)
         p, _ = self.net.forward(X)
-        a = int(np.argmax(p))  # greedy
-        if a == len(cands):    # postpone -> return None so the core suspends/retries
+        a = int(np.argmax(p))  
+        if a == len(cands):    # postpone 
             return None
         return cands[a]
 
@@ -150,6 +147,6 @@ class RLAllocation(AllocationStrategy):
         with open(path, encoding="utf-8") as f:
             b = json.load(f)
         net = PolicyNet.from_dict(b["net"])
-        # only calendar sizes are needed for the availability feature
+        
         calendars = {r: range(n) for r, n in b["cal_sizes"].items()}
         return cls(net, calendars, b["skill"], int(b["max_cal"]))

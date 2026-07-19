@@ -1,6 +1,7 @@
 # 1.2 (basic): evaluation metrics for resource allocation methods.
 
-# Three metrics from a standard XES event-log DataFrame (simulator output or BPIC-17 slim log): average cycle time, average resource occupation and weighted resource fairness.
+# Three metrics from a standard XES event-log DataFrame (simulator output or BPIC-17 slim log): 
+# average cycle time, average resource occupation and weighted resource fairness.
 
 
 
@@ -20,23 +21,12 @@ SECONDS_PER_WEEK = 7 * 24 * 3600
 
 # helpers
 def activity_durations(log_df: pd.DataFrame) -> pd.DataFrame:
-    #  Pair each "complete" with the MOST RECENT preceding "start"/"resume" of the
-    #  same (case, activity) work item, so busy time is the active segment only.
 
-    # A resumed activity is timed from its resume event: the suspend->resume gap is
-    # waiting, not busy. Real BPIC-17 work items look like start -> (suspend -> resume)*
-    # -> complete, so pairing the FIRST start with the complete (a plain per-occurrence
-    # cumcount merge) would fold every suspension into the "busy" span and inflate
-    # occupation; the simulator log emits resume -> complete without a "start" and is
-    # handled by the same rule. Instantaneous state events (only a "complete", e.g.
-    # A_/O_ activities) have no preceding open and are dropped.
     df = log_df[[CASE, ACT, RES, TS, LC]].copy()
     df[TS] = pd.to_datetime(df[TS], utc=True)
     df = df[df[LC].isin(["start", "resume", "complete"])].sort_values(TS)
 
-    # Split the events of each (case, activity) into work-item sessions terminated by a
-    # "complete": cumsum of the completes, shifted so each complete shares the session id
-    # of the opens that precede it.
+    # Split the events of each (case, activity) into work-item sessions terminated by a "complete"
     is_complete = df[LC] == "complete"
     df["session"] = (
         is_complete.groupby([df[CASE], df[ACT]]).cumsum() - is_complete.astype(int)
@@ -45,7 +35,7 @@ def activity_durations(log_df: pd.DataFrame) -> pd.DataFrame:
     opens = df[df[LC].isin(["start", "resume"])]
     comps = df[is_complete]
     open_last = opens.groupby([CASE, ACT, "session"]).agg(
-        start=(TS, "last"), resource=(RES, "last")  # the resume (or start) that timed it
+        start=(TS, "last"), resource=(RES, "last")  
     )
     comp_first = comps.groupby([CASE, ACT, "session"]).agg(complete=(TS, "first"))
 
@@ -56,7 +46,7 @@ def activity_durations(log_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def busy_seconds(dur: pd.DataFrame) -> pd.Series:
-    # Per-resource actual occupied (wall-clock) time = UNION of busy intervals.
+    # Per-resource actual occupied 
 
     out: dict[str, float] = {}
     for resource, grp in dur.groupby("resource"):
@@ -95,8 +85,7 @@ def _available_seconds(availability, window_s: float) -> dict[str, float] | None
 
 
 def gini(values) -> float:
-    #  Gini coefficient (0 = perfectly equal, ->1 = maximally unequal).
-
+    #  Gini coefficient 
     x = np.sort(np.asarray(list(values), dtype=float))
     n = x.size
     if n == 0 or x.sum() == 0:
@@ -107,7 +96,7 @@ def gini(values) -> float:
 
 # metrics
 def average_cycle_time(log_df: pd.DataFrame) -> dict:
-    #  Per-case span (last - first event timestamp), averaged over cases.
+    #  Per-case span 
 
     ts = pd.to_datetime(log_df[TS], utc=True)
     g = pd.DataFrame({CASE: log_df[CASE].values, TS: ts.values}).groupby(CASE)[TS]
@@ -123,10 +112,10 @@ def average_cycle_time(log_df: pd.DataFrame) -> dict:
 def average_resource_occupation(
     log_df: pd.DataFrame, availability=None, window_s: float | None = None
 ) -> dict:
-    # Mean per-resource occupation = busy time / available time.
+    # Mean per-resource occupation 
 
     dur = activity_durations(log_df)
-    busy = busy_seconds(dur)  # union of intervals -> true occupied time
+    busy = busy_seconds(dur)  
 
     window_s = _window_seconds(log_df, window_s)
     avail = _available_seconds(availability, window_s) if availability is not None else None
@@ -156,14 +145,13 @@ def resource_fairness(
     availability=None,
     window_s: float | None = None,
 ) -> dict:
-    # Gini coefficient over per-resource load (lower = fairer).
-    # by="busy" uses busy seconds, by="count" uses activities
+    # Gini coefficient over per-resource load 
 
     dur = activity_durations(log_df)
     if by == "count":
         load = dur.groupby("resource").size().astype(float)
     else:
-        load = busy_seconds(dur)  # union of intervals -> true occupied time
+        load = busy_seconds(dur)  # union of intervals 
 
     if weighted and availability is not None:
         window_s = _window_seconds(log_df, window_s)
@@ -182,7 +170,6 @@ def resource_fairness(
 
 
 def compute_all(log_df: pd.DataFrame, availability=None, window_s: float | None = None) -> dict:
-    # All three metrics in one dict (reused as the RL reward signal)
     return {
         "cycle_time": average_cycle_time(log_df),
         "occupation": average_resource_occupation(log_df, availability, window_s),
@@ -191,8 +178,7 @@ def compute_all(log_df: pd.DataFrame, availability=None, window_s: float | None 
 
 
 def compare_on_sim(sim_logs: dict, availability=None) -> pd.DataFrame:
-    # Cross-method comparison on the integrated simulator output (task F bridge).
-    # sim_logs: {method_name: simulator_output_log_df}, one table row per method.
+    # Cross-method comparison on the integrated simulator output 
     rows = []
     for method, slog in sim_logs.items():
         m = compute_all(slog, availability=availability)

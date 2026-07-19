@@ -1,4 +1,4 @@
-# 1.7 (Part 1) - Resource permissions
+# 1.7 (Part 1): Resource permissions
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ DEFAULT_ARTIFACT = "results/permissions_roles.json"
 
 
 class PermissionModel:
-    # Maps an activity to the set of resources allowed to perform it.
 
     def __init__(
         self,
@@ -47,5 +46,5 @@ class PermissionModel:
         self._activity_to_resources = {a: set(rs) for a, rs in raw.items()}
 
     def who_can(self, activity) -> set[str]:
-        # Return the set of resources permitted to perform "activity".
+        # Return the set of resources permitted to perform "activity"
         return self._activity_to_resources.get(str(activity), set())

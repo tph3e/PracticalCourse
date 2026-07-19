@@ -22,17 +22,15 @@ from optimization.metrics import compare_on_sim
 from optimization.rl_agent import RLAllocation
 
 DATA_PATH = "data/BPI Challenge 2017.xes"
-SEED = int(os.environ.get("SIM_SEED", "1"))   # vary for multi-seed statistical comparison
-# Monday 09:00 start so the working-hour calendars are active from the first arrival.
+SEED = int(os.environ.get("SIM_SEED", "1"))   
+# Monday 09:00 start 
 START = datetime(2000, 1, 3, 9, 0)
 END = datetime(2000, 1, 10, 0, 0)          # one-week window
-RL_POLICY = os.environ.get("RL_POLICY", "results/rl_policy.json")  # override to eval the 2C policy
-PPO_MODEL = os.environ.get("PPO_MODEL")  # set (e.g. results/ppo_model) to add PPO (needs sb3 venv)
+RL_POLICY = os.environ.get("RL_POLICY", "results/rl_policy.json")  
+PPO_MODEL = os.environ.get("PPO_MODEL")  
 
 
 def _rl_label(path: str) -> str:
-    # The row name must follow the policy actually loaded, otherwise the output CSV lies.
-    # Default is the REINFORCE baseline. MaskablePPO is added separately via PPO_MODEL.
     if os.environ.get("RL_LABEL"):
         return os.environ["RL_LABEL"]
     return "RL (REINFORCE)"
@@ -40,24 +38,18 @@ def _rl_label(path: str) -> str:
 
 RL_LABEL = _rl_label(RL_POLICY)
 OUT_CSV = "results/sim_comparison.csv"
-# Load knob for congestion experiments: scales every interarrival gap (<1 = more load).
-# 1.0 = real BPIC arrival rate. A core-level knob would be K1's. Here a driver monkeypatch.
+# 1.0 = real BPIC arrival rate. 
 ARRIVAL_SCALE = float(os.environ.get("ARRIVAL_SCALE", "1.0"))
 
-# TEMPORARY stand-in, NOT part of the deliverable. Compensates for two K1 ProcessTimeEngine
-# bugs (task 1.3) so the comparison can run. (1) UNITS: the basic path misreads fitted SECONDS
-# as timedelta days, so durations blow up and cases never complete in-window. (2) MISS -> 0:
-# unseen (activity, resource) pairs return timedelta(0), collapsing durations. Here every
-# (activity, kind) uses a seen per-activity model read in the correct unit. Set False once
-# K1 fixes the engine.
+# temporary stand-in, not part of the deliverable. Compensates for ProcessTimeEngine
+# bugs (task 1.3) so the comparison can run
 USE_ACTIVITY_FALLBACK = False
 _KEY_RE = re.compile(r"^(?P<act>.+)_(?P<res>User_\d+)_(?P<kind>processing|waiting)$")
-_MAX_DURATION_S = 24 * 3600.0            # clip pathological heavy-tail samples to 24 h
+_MAX_DURATION_S = 24 * 3600.0            
 
 
 def install_activity_level_fallback(pte) -> int:
-    # Replace sampleTime_basic with an activity-level, correct-unit sampler built only
-    # from K1's own fitted distributions. Returns the number of activities covered.
+    # Replace sampleTime_basic with an activity-level
     mb = pte.models_basic
     representative: dict[tuple[str, str], str] = {}
     for key in mb:
@@ -65,7 +57,6 @@ def install_activity_level_fallback(pte) -> int:
         if not m:
             continue
         ak = (m.group("act"), m.group("kind"))
-        # deterministic representative: lexicographically smallest matching key
         if ak not in representative or key < representative[ak]:
             representative[ak] = key
 
@@ -73,7 +64,7 @@ def install_activity_level_fallback(pte) -> int:
         if np.random.rand() < model.get("0-proportion", 0.0):
             return timedelta(0)
         td = pte.sample_distrib(model["distribution"], model["parameters"])
-        raw = td.total_seconds() / 86400.0        # undo the timedelta(days) misread -> fitted seconds
+        raw = td.total_seconds() / 86400.0        
         return timedelta(seconds=min(raw, _MAX_DURATION_S))
 
     def patched(activity, resource="", kind="processing"):
@@ -87,7 +78,7 @@ def install_activity_level_fallback(pte) -> int:
 
 
 class ShortestQueue(AllocationStrategy):
-    # Load-balancing baseline: pick the permitted-and-free resource with least load.
+    # Load-balancing baseline: pick resource with least load.
     def pick(self, candidates, context=None):
         if not candidates:
             return None
@@ -96,7 +87,7 @@ class ShortestQueue(AllocationStrategy):
 
 
 class MostExperienced(AllocationStrategy):
-    # Skill baseline: pick the candidate that ran this activity most in the real log.
+    # Skill baseline: pick candidate that ran activity most in the real log.
     def __init__(self, skill):
         self.skill = skill
 
@@ -114,12 +105,12 @@ def run_strategy(name, make_strategy):
     eng = Engine(DATA_PATH, seed=SEED)
     if USE_ACTIVITY_FALLBACK:
         install_activity_level_fallback(eng.processTimeEngine)
-    if ARRIVAL_SCALE != 1.0:                        # congestion experiment (driver monkeypatch)
+    if ARRIVAL_SCALE != 1.0:                        
         _orig = eng.arrivalEngine.nextArrivalTime
         eng.arrivalEngine.nextArrivalTime = lambda ct: timedelta(
             seconds=_orig(ct).total_seconds() * ARRIVAL_SCALE)
     eng.resourceEngine.set_allocation(make_strategy(eng))
-    eng.run(START, END, format_type=[])            # no file output, keep the log in memory
+    eng.run(START, END, format_type=[])            
     log = eng.logger.get_log()
     lc = log["lifecycle:transition"].value_counts().to_dict() if not log.empty else {}
     n_cases = log["case:concept:name"].nunique() if not log.empty else 0
@@ -134,7 +125,7 @@ def main():
         print("NOTE: activity-level processing-time fallback ACTIVE (temporary stand-in "
               "for K1's ProcessTimeEngine; numbers are provisional).\n")
 
-    cfg = build_env_config(load_slim_log(), faithful=False)   # only skill needed here
+    cfg = build_env_config(load_slim_log(), faithful=False)   
     skill = cfg["skill"]
     if ARRIVAL_SCALE != 1.0:
         print(f"NOTE: ARRIVAL_SCALE={ARRIVAL_SCALE} (congestion experiment, driver monkeypatch).\n")
@@ -149,7 +140,7 @@ def main():
     else:
         print(f"  (skipping RL: {RL_POLICY} not found)")
     if PPO_MODEL:
-        from optimization.ppo_agent import PPOAllocation      # lazy: needs the sb3 venv
+        from optimization.ppo_agent import PPOAllocation      
         strategies["PPO (MaskablePPO)"] = lambda eng: PPOAllocation.load(
             PPO_MODEL, cfg["calendars"], cfg["skill"], cfg["activity_mix"])
 
