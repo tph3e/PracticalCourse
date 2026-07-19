@@ -49,10 +49,6 @@ Additionally, allocation and optimization tasks are implemented.
 └── SimulationEngineCore.py   # Part I: task 1.1 (Core)
 ```
 
-Details: TBD
-
-This project is not finished yet and subject to ongoing changes.
-
 ### Setup
 The _requirements.txt_ contains all dependencies necessary to execute the project.
 

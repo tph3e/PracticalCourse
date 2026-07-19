@@ -40,6 +40,8 @@ class AnticipatoryAssignmentAllocator(AllocationStrategy):
                 if task in waiting_tasks:
                     cost_matrix[i, j] = p_rt
                 else:
+                    #Specific median as simple and specifc yet robust processing time estimates
+                    #if this does not exist other options are considered by the adapter
                     p_rt = self.processTimeEngine.getMedian(task.activity, spec_resource.resource_id)
                     # Apply the weight 'w' to the expected waiting time
                     wait_time = max(0, task['enabled_time'] - current_time)
