@@ -1,6 +1,23 @@
 \section*{Appendix}\label{sec:appendix}
 
-\subsection*{A. Reinforcement-learning configuration (Sec.~\ref{subsec:rl})}
+\subsection*{A. Processing and Waiting Times}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/resource_processingTime_1.png}
+    \caption{Mean Processing Times per Activity and Resource of the BPIC-17 dataset (Thomas P. Hartel)}
+    \label{fig:resource_procTimes}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/resource_waitingTime_1.png}
+    \caption{Mean Waiting Times per Activity and Resource of the BPIC-17 dataset (Thomas P. Hartel)}
+    \label{fig:resource_procTimes}
+\end{figure}
+
+
+\subsection*{B. Reinforcement-learning configuration (Sec.~\ref{subsec:rl})}
 \begin{table}[H]
     \caption{Reinforcement-learning training hyperparameters and environment settings
     (Aldo Patrone).}
@@ -10,20 +27,22 @@
     \begin{tabular}{lll}
         \toprule
         \textbf{Setting} & \textbf{REINFORCE} & \textbf{MaskablePPO} \\
-                         & \textbf{(surrogate)} & \textbf{(paper MDP)} \\
+                         & \textbf{(per-candidate)} & \textbf{(global)} \\
         \midrule
         Policy        & per-candidate MLP & MlpPolicy \\
         Hidden layers & $24$ & $128$-$128$ \\
         Learning rate & $0.05$ & $3\cdot10^{-4}$ \\
         Discount $\gamma$ & $0.99$ & $0.99$ \\
-        Training      & $500$ ep.\ $\times\,600$ & $600\mathrm{k}$ steps \\
+        Training      & $500$ ep.\ $\times\,800$ & $600\mathrm{k}$ steps \\
         Rollout       & full-episode & $n=2048$, batch $256$ \\
         Seed          & $1$ & $1$ \\
         State         & $5$ per-cand.\ feat. & $2|R|{+}|A|$ ($\delta,\eta,\kappa$) \\
         Action        & per-cand.\ + postpone & $|R|{\cdot}|A|{+}1$ (masked) \\
-        Reward        & $\tfrac{1}{\mathrm{CT}/3600+1}$+Gini & $-\Delta t\,n_{\mathrm{act}}/3600$+Gini \\
         \midrule
-        \multicolumn{3}{l}{\textit{Shared environment (calibrated to BPIC-17)}} \\
+        \multicolumn{3}{l}{\textit{Shared environment (GymAllocationEnv, calibrated to BPIC-17)}} \\
+        Reward                 & \multicolumn{2}{l}{$-\Delta t\,n_{\mathrm{act}}/3600 + w_{\mathrm{fair}}\!\cdot\!\Delta\mathrm{Gini}$} \\
+        Postpone cost          & \multicolumn{2}{l}{$0.5$ per wait action} \\
+        $w_{\mathrm{fair}}$ sweep & \multicolumn{2}{l}{$\{0,1,5\}$} \\
         Mean interarrival      & \multicolumn{2}{l}{$1000$ s} \\
         Case length            & \multicolumn{2}{l}{$8$ to $21$ activities} \\
         Max postpone           & \multicolumn{2}{l}{$3$ (least-loaded fallback)} \\
@@ -31,6 +50,16 @@
     \end{tabular}
     \label{tab:rl_hparams}
 \end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/rl_mdp_schematic.png}
+    \caption{Markov decision process for the allocation policy (Aldo Patrone), matching Middelhuis
+    et al.: a $2|R|+|A|$ state, a masked $(\text{resource},\text{activity})$ action space plus
+    postpone and a cycle-time reward, learned with MaskablePPO on the calibrated discrete-event
+    environment and deployed onto the integrated engine via a per-task reduction.}
+    \label{fig:rl_mdp}
+\end{figure}
 
 \begin{figure}[H]
     \centering
@@ -42,13 +71,14 @@
 \end{figure}
 \FloatBarrier
 
-\subsection*{B. Allocation method comparison (Sec.~\ref{ssub:rl-eval})}
+\subsection*{C. Fairness-weight sensitivity (Sec.~\ref{ssub:rl-eval})}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\columnwidth]{figures/allocation_comparison.png}
-    \caption{Auxiliary numpy-baseline comparison on the case-based environment (Aldo
-    Patrone): cycle time, load Gini and combined score. The paper-faithful MaskablePPO
-    evaluation is Table~\ref{tab:alloc_sim}.}
+    \includegraphics[width=\columnwidth]{figures/wfair_sensitivity.png}
+    \caption{Fairness-weight sensitivity (Aldo Patrone): cycle time and load Gini of REINFORCE and
+    MaskablePPO trained on the same paper-faithful environment at $w_{\mathrm{fair}}\in\{0,1,5\}$.
+    The heuristic baselines appear as reference lines because they are reward-independent. Both
+    learned methods use the evaluation setup of Table~\ref{tab:alloc_sim}.}
     \label{fig:alloc_cmp_plot}
 \end{figure}
 
@@ -63,7 +93,7 @@
 \end{figure}
 \FloatBarrier
 
-\subsection*{C. Resource model diagnostics (Sec.~\ref{subsec:resources})}
+\subsection*{D. Resource model diagnostics (Sec.~\ref{subsec:resources})}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\columnwidth]{figures/permissions_basic_vs_advanced.png}
@@ -99,3 +129,324 @@
     \label{fig:alloc_unif}
 \end{figure}
 \FloatBarrier
+
+
+\clearpage
+\onecolumn
+
+\clearpage
+\onecolumn
+
+% The existing appendix contains Sections A--C.
+\setcounter{section}{4}
+
+\section{João Evaluation Details}
+\label{app:joao-evaluation-details}
+
+\noindent\textit{Responsible: João Frederico Martins Zuffo.}
+
+
+\subsection{Corrected Branching Evaluation}
+\label{app:joao_branching_model_selection}
+
+The final branching evaluation uses a leakage-free temporal case split and a
+common BPMN-replay decision dataset. Model and feature selection are performed
+only on the development partition, while the held-out partition is reserved
+for final evaluation.
+
+The $76$ cases used in the fixed-replay allocation benchmark are contained in
+the held-out partition and have zero overlap with the evaluation-model training
+cases. Historical full-log and pre-optimization models are retained only as
+development evidence and are not used to support the final held-out claims.
+
+The replay procedure separates process-model coverage from predictive
+performance. Deterministic states are recorded but excluded from the
+classification benchmark because they expose only one possible successor.
+Observations whose historical next activity is not enabled after replay are
+reported as BPMN-alignment limitations rather than ordinary prediction errors.
+
+\begin{table}[H]
+    \caption{Corrected branching split and BPMN-replay coverage summary.}
+    \label{tab:appendix_branching_split_joao}
+    \centering
+    \renewcommand{\arraystretch}{1.1}
+    \small
+    \begin{tabular}{lr}
+        \toprule
+        \textbf{Quantity} & \textbf{Count} \\
+        \midrule
+        Outer-development cases
+        & $22{,}056$ \\
+        Held-out cases
+        & $9{,}453$ \\
+        Inner training cases
+        & $18{,}747$ \\
+        Validation cases
+        & $3{,}309$ \\
+        Fixed-replay held-out cases
+        & $76$ \\
+        Complete lifecycle events inspected
+        & $475{,}306$ \\
+        Synchronized events
+        & $228{,}895$ \\
+        Deterministic single-candidate states
+        & $103{,}337$ \\
+        Multi-candidate decision observations
+        & $98{,}332$ \\
+        Held-out evaluated observations
+        & $29{,}385$ \\
+        Historical successor not enabled
+        & $24{,}526$ \\
+        Training overlap with held-out evaluation
+        & $0$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Only the $29{,}385$ common held-out decision observations are used for the
+branching-method comparison in
+Table~\ref{tab:branching_corrected_methods_joao}. All methods therefore receive
+the same candidate sets and target activities.
+
+These coverage counts also explain why synchronization success, deterministic
+routing, next-activity prediction, and exact BPMN transition execution are
+reported separately. The event log contains visible activity labels but no
+BPMN transition-identifier ground truth.
+
+
+\subsection{Canonical Fixed-Replay Details}
+\label{app:joao-fixed-replay-details}
+
+The canonical allocation benchmark was repeated using seeds $1$--$5$. Each
+method received the same $76$ held-out historical routes under the same
+fixed-replay protocol. R-RRA and R-SHQ correspond to the RoundRobin and
+ShortestQueue implementations, respectively.
+
+The per-seed results expose variability across runs rather than relying only on
+aggregated means. Cycle time is calculated only for completed fixed routes.
+Waiting time measures the interval between resource-queue entry and assignment,
+while occupation is normalized by the complete arrival-plus-drain horizon.
+
+\begin{table}[H]
+    \caption{Per-seed canonical fixed-replay metrics. Cycle time is in hours,
+    waiting time is in minutes, and occupation is normalized by the complete
+    arrival-plus-drain horizon.}
+    \label{tab:joao_fixed_replay_per_seed}
+    \centering
+    \renewcommand{\arraystretch}{1.02}
+    \tiny
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{llrrrrrr}
+        \toprule
+        \textbf{Method}
+        & \textbf{Seed}
+        & \textbf{Completed/admitted}
+        & \textbf{Cycle h}
+        & \textbf{Wait min}
+        & \textbf{Occ. horizon}
+        & \textbf{Gini}
+        & \textbf{Runtime s} \\
+        \midrule
+
+        R-RRA
+        & 1 & 76/76 & 17.7031 & 25.3456 & 0.1654 & 0.4574 & 11.564 \\
+        R-RRA
+        & 2 & 76/76 & 37.5774 & 27.3036 & 0.1731 & 0.4960 & 11.910 \\
+        R-RRA
+        & 3 & 76/76 & 41.4704 & 30.9533 & 0.1693 & 0.4849 & 11.456 \\
+        R-RRA
+        & 4 & 76/76 & 28.9231 & 22.4095 & 0.1554 & 0.4825 & 11.587 \\
+        R-RRA
+        & 5 & 76/76 & 20.4195 & 30.4304 & 0.3976 & 0.7427 & 13.950 \\
+
+        \midrule
+
+        R-SHQ
+        & 1 & 75/76 & 19.2220 & 28.4332 & 0.1584 & 0.4247 & 12.063 \\
+        R-SHQ
+        & 2 & 76/76 & 14.8289 & 26.6636 & 0.1480 & 0.4330 & 11.714 \\
+        R-SHQ
+        & 3 & 76/76 & 20.0788 & 29.5785 & 0.1337 & 0.4922 & 13.450 \\
+        R-SHQ
+        & 4 & 76/76 & 20.3080 & 27.3047 & 0.1380 & 0.4905 & 12.570 \\
+        R-SHQ
+        & 5 & 76/76 & 16.0961 & 27.7975 & 0.1297 & 0.5285 & 15.041 \\
+
+        \midrule
+
+        ParkSong-Composite
+        & 1 & 76/76 & 26.0404 & 60.0675 & 0.1848 & 0.5377 & 18.192 \\
+        ParkSong-Composite
+        & 2 & 76/76 & 24.8862 & 45.5716 & 0.1785 & 0.5216 & 19.203 \\
+        ParkSong-Composite
+        & 3 & 76/76 & 53.1821 & 146.4947 & 0.1517 & 0.5085 & 11.149 \\
+        ParkSong-Composite
+        & 4 & 76/76 & 20.5432 & 42.0222 & 0.2047 & 0.5361 & 16.507 \\
+        ParkSong-Composite
+        & 5 & 76/76 & 36.5000 & 72.6718 & 0.1785 & 0.5379 & 17.273 \\
+
+        \midrule
+
+        Kunkler-Rinderle-Ma
+        & 1 & 76/76 & 39.0450 & 36.7063 & 0.2666 & 0.5173 & 10.976 \\
+        Kunkler-Rinderle-Ma
+        & 2 & 75/76 & 15.5926 & 24.6909 & 0.3075 & 0.4619 & 9.865 \\
+        Kunkler-Rinderle-Ma
+        & 3 & 76/76 & 21.6370 & 26.3665 & 0.2611 & 0.4813 & 9.612 \\
+        Kunkler-Rinderle-Ma
+        & 4 & 76/76 & 32.5015 & 25.9772 & 0.2910 & 0.4747 & 8.255 \\
+        Kunkler-Rinderle-Ma
+        & 5 & 76/76 & 35.0544 & 22.5333 & 0.2717 & 0.5129 & 9.256 \\
+
+        \midrule
+
+        Batch
+        & 1 & 76/76 & 29.9184 & 28.7695 & 0.3027 & 0.4808 & 9.309 \\
+        Batch
+        & 2 & 75/76 & 20.4857 & 28.6345 & 0.2923 & 0.4782 & 9.966 \\
+        Batch
+        & 3 & 76/76 & 17.1961 & 21.7315 & 0.2862 & 0.4816 & 8.844 \\
+        Batch
+        & 4 & 76/76 & 17.5094 & 31.0160 & 0.2754 & 0.5073 & 9.786 \\
+        Batch
+        & 5 & 76/76 & 14.4103 & 26.3990 & 0.2568 & 0.5079 & 9.054 \\
+
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+
+\begin{table}[H]
+    \caption{Canonical fixed-replay allocation results over five seeds.
+    Cycle time is reported for completed fixed routes. Values are
+    mean $\pm$ sample standard deviation where shown.}
+    \label{tab:joao_fixed_replay}
+    \centering
+    \renewcommand{\arraystretch}{1.12}
+    \scriptsize
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{lrrrrrr}
+        \toprule
+        \textbf{Method}
+        & \textbf{Fixed-route completion}
+        & \textbf{Cycle h}
+        & \textbf{Wait min}
+        & \textbf{Gini}
+        & \textbf{Weighted fairness}
+        & \textbf{Runtime s} \\
+        \midrule
+
+        R-RRA
+        & 380/380
+        & $29.2187 \pm 10.3694$
+        & $27.2885 \pm 3.5666$
+        & $0.5327 \pm 0.1182$
+        & $0.0053$
+        & $12.093$ \\
+
+        R-SHQ
+        & 379/380
+        & $18.1068 \pm 2.4882$
+        & $27.9555 \pm 1.1158$
+        & $0.4738 \pm 0.0438$
+        & $0.0032$
+        & $12.968$ \\
+
+        ParkSong-Composite
+        & 380/380
+        & $32.2304 \pm 13.0963$
+        & $73.3656 \pm 42.6618$
+        & $0.5284 \pm 0.0130$
+        & $0.0044$
+        & $16.465$ \\
+
+        Kunkler-Rinderle-Ma
+        & 379/380
+        & $28.7661 \pm 9.7918$
+        & $27.2548 \pm 5.4913$
+        & $0.4896 \pm 0.0243$
+        & $0.0054$
+        & $9.593$ \\
+
+        Batch
+        & 379/380
+        & $19.9040 \pm 5.9974$
+        & $27.3101 \pm 3.5203$
+        & $0.4912 \pm 0.0151$
+        & $0.0054$
+        & $9.392$ \\
+
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+The five-seed results show that the observed method ordering is not identical
+in every individual run. R-SHQ has the lowest aggregated cycle time and
+fairness values, but one route is censored in seed~1. Kunkler-Rinderle-Ma and
+Batch each censor one route in seed~2.
+
+R-RRA and ParkSong-Composite complete every admitted route in all five seeds.
+ParkSong-Composite also shows comparatively high variation in cycle and waiting
+time, particularly in seed~3. The aggregated rankings should therefore be read
+together with completion and per-seed variability.
+
+
+\subsection{ParkSong Reservation Diagnostics}
+\label{app:joao-parksong-diagnostics}
+
+The ParkSong-Composite diagnostics confirm that the prediction-aware
+reservation mechanism was actively exercised during the canonical fixed replay.
+The reservation-utilization rate is calculated as the number of used
+reservations divided by the number of created reservations.
+
+\begin{table}[H]
+    \caption{Canonical ParkSong parameters, reservation outcomes, and
+    processing-time diagnostics.}
+    \label{tab:joao_parksong_diagnostics}
+    \centering
+    \renewcommand{\arraystretch}{1.1}
+    \small
+    \begin{tabular}{lr}
+        \toprule
+        \textbf{Diagnostic} & \textbf{Value} \\
+        \midrule
+        Time-cost scale
+        & $3600$ s \\
+        No-show penalty weight
+        & $1.0$ \\
+        Future-delay weight
+        & $0$ \\
+        Reservation margin
+        & $0$ \\
+        Predictions consumed
+        & $5{,}045$ \\
+        Prediction matches / mismatches
+        & $2{,}832$ / $2{,}213$ \\
+        Reservations created / used
+        & $1{,}580$ / $474$ \\
+        Reservations expired / cancelled / unresolved
+        & $385$ / $721$ / $0$ \\
+        Reservation utilization
+        & $30.00\%$ \\
+        Train-split resource--activity medians
+        & $405$ \\
+        Resources / activities covered
+        & $121$ / $6$ \\
+        Default processing time
+        & $669.0095$ s \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The diagnostics show that the predictive reservation mechanism was operational,
+but only $474$ of the $1{,}580$ created reservations were eventually used.
+This helps explain why ParkSong-Composite achieved full route completion but
+did not improve cycle or waiting time relative to the reactive baselines.
+
+The limited resource--activity processing-time coverage also requires fallback
+estimates for combinations not represented in the training split. The ParkSong
+results therefore demonstrate an executable anticipatory mechanism, while also
+showing the cost of strategic idling under imperfect predictions and incomplete
+processing-time coverage.

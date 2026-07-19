@@ -9,6 +9,36 @@
 \usepackage{float}
 \usepackage{placeins}
 
+\setlength{\textfloatsep}{7pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
+\setlength{\abovedisplayskip}{6pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{6pt plus 2pt minus 2pt}
+\setlength{\abovedisplayshortskip}{3pt}
+\setlength{\belowdisplayshortskip}{3pt}
+
+\setlength{\jot}{2pt}
+\setlength{\tabcolsep}{4pt}
+
+\RedeclareSectionCommand[
+  beforeskip=1.4ex plus .3ex minus .2ex,
+  afterskip=.6ex plus .1ex
+]{section}
+
+\RedeclareSectionCommand[
+  beforeskip=1.1ex plus .2ex minus .2ex,
+  afterskip=.4ex plus .1ex
+]{subsection}
+
+\RedeclareSectionCommand[
+  beforeskip=.8ex plus .2ex minus .1ex,
+  afterskip=.25ex plus .1ex
+]{subsubsection}
+
 \title{Group Assignment -- Business Process Prediction, Simulation, and Optimization}
 \subtitle{A Data-Driven Simulation Model and Resource-Allocation Optimization on the BPIC-17 Event Log}
 
@@ -49,19 +79,24 @@ procedure, comparing heuristic and reinforcement-learning policies under several
 metrics. All components are fit on the real BPIC-17 event log. Section~\ref{sec:ai}
 documents our use of AI tools.
 
+\section{Technical Setup and Use of AI}\label{sec:ai}
+\input{sections/ai_tools}
+
 \section{Simulation Model (Part~I)}\label{sec:sim}
 
 \subsection{Simulation Engine Core}
-\textit{(Thomas P. Hartel, 1.1)}\quad
+\textit{(Thomas P. Hartel, 1.1)}\quad Each event and case is modelled as its own class and equipped with attributes that can be jointly retrieved and updated in the standard XES format.
 
-For the discrete simulation core, a priority queue is used with a custom priority rule based on the simulation time point, the event type and otherwise on the case ID. The latter ensures that there is always a clear order. The event type ensures that activities are terminated first before others are resumed and before any new activity is started. This is only logical because it ensures that resources are freed as soon as possible and can take up a new activity as soon as they finish their last one.
-Each event and case is modelled as its own class and equipped with attributes that can be jointly retrieved and updated in the standard XES format.
+When the core creates all objects for the specific tasks, it provides them with the necessary data, so that it is not loaded multiple times, and a random seed to have centralised control of randomness and reproducability.
 
-For case arrival, attributes are sampled according to conditional probabilities when sufficient data is available. Otherwise, fallbacks are used. For each case, the last $n$ ($n \in \mathbb N$) or all events can be returned, as well as a count of how often an activity occurs in a case up to that moment. This is important in feature construction for machine learning. The log can be exported to xes, csv or both which is implemented via an own class.
+For the simulation's core, a priority queue is used with a custom priority rule based on the simulation time point, the event type and otherwise on the case-ID. The event type ensures that activities are terminated first before others are resumed and before any new activity is started. This is only logical because it ensures that resources are freed as soon as possible and can take up a new activity as soon as they finish their last one. The last fallback of the comparison on case-ID ensures that there is always a clear order.
 
-Note that the case arrival is modelled seperatly from the start of the first activity because the latter requires a resource to be assigned. This choice keeps th model more flexible. If no resource can be assigned to an event, the event is not logged. This is in line with the sample log.
+Note that the case arrival is modelled seperatly from the start of the first activity because the latter requires a resource to be assigned. This choice keeps the model more flexible. If no resource can be assigned to an event, the event is not logged. This is in line with the BPIC-17 log.
+
+For each case arrival, case attributes are sampled based on the BPIC-17 log data. The categorical application type and loan goal are sampled jointly. For the continous attribute requested amount, lognormal distributions are fitted. If enough data is available, a specific distribution based on application type and loan goal is used. Otherwise, a fallback is employed. For each case, the last $n$ ($n \in \mathbb N$) or all events can be returned (by a case method), as well as a count of how often an activity occurs in a case up to that moment. This is important in feature construction for machine learning. 
 
 The engine core provides a method to suspend activities so that this can be simulated by resource allocation approaches.
+The log-export to xes, csv or both is implemented via an own class.
 
 \subsection{Case Arrivals} \textit{(Can Güleç, 1.2)}
 The case arrival engine handles when new process instances show up during the simulation. Instead of just sampling arrival times from one static distribution (the simple approach), we use dynamic arrival rates that change depending on the time of day and day of the week. 
@@ -82,16 +117,17 @@ This design was inspired by Kirchdorfer et al. (2025) \cite{kirchdorfer2025divid
 \textit{(Thomas P. Hartel, 1.3)}\quad
 
 The process time engine provides the processing and waiting times for the engine.
-For all models, processing and waiting times are computed seperatly.
+For all models, processing and waiting times are computed separately. Calculating waiting times accurately is difficult because events that follow one another in the log can come from different sections of the process that operate independently. Because this information is not provided in the BPIC-17 log, the times between events is used as waiting time. Even though a fixed factor might be suitable for combating this, identifying parallel structures algorithmically requires detailed log analysis and is therefore not used here.
 
-For the standard basic modells, a binomial model tracks the proportion of zero-duration events to accurately sample instantenous tasks. Then, a Gamma, a Lognormal and a Poisson distribution are fitted to the non-zero timespans for each combination of activity and resource. The optimal distribution is automatically selected by the Akaike Information Criterion based on the number of parameters and the likelihood. If there is insufficient data to fit the combination of activity and resource, the three distributions are fitted only to the activity.
+For the basic models, a binomial selector tracks the proportion of zero-duration events to accurately model instantaneous events. Then, a Gamma, a Lognormal and a Poisson distribution are fitted to the non-zero timespans for each combination of activity and resource. The optimal distribution is automatically selected by the Akaike Information Criterion based on the number of parameters and the likelihood. $AIC = 2p-2\log(L)$ for $p$ model parameters and the likelihood of the data given the model $L$.
 
-For the advanced contextual model a Random Forest Regressor is employed. The pipeline uses a Column Transformer to handle missing values via median imputation and categorical variables via one-hot encoding. This allows the model to predict times based on the specific attributes of a case at a given moment. Additionally, the hour of day and the weekday at event start are used as variables. Also a variable counting how often this activity occured in the case, is used. This can be reasonable as it a repeated activity may be faster than the first one.
+If there is insufficient data to fit the combination of activity and resource, the three distributions are fitted only to the activity because the activity is more relevant for the than the resource. This is evident using the feature importance of a Random Forest Regressor and $R^2$ values ($R^2_{\text{activity}}=0.52$, $R^2_{\text{resource}}=0.07$ for the processing times) and can be seen in Figure \ref{fig:resource_procTimes}.
+
+For the advanced contextual model, a Random Forest Regressor is employed. The pipeline uses a Column Transformer to handle missing values via median imputation and categorical variables via one-hot encoding. This allows the model to predict times based on a case's specific attributes at a given point in time. Additionally, the hour of day and the weekday at event start are used as variables. Also, a variable counting how often this activity occurred in the case is used. This can be reasonable as a repeated activity may be faster than the first one. For hyperparameter optimization, $3$-fold cross validation and a parameter grid are used.
 
 For uncertainty estimation, a quantile regression based on a Gradient Boosting Tree is used. By training pipelines for the $25$th, $50$th, and $75$th percentiles, the engine does not just output a static expected value. Instead, it provides a probabilistic bounds estimation, which is vital for risk assessment in process execution.
 
 To prevent retraining the model for every simulation run, the models are stored. If they are found at the respective path, the models are just loaded instead of retrained.
-
 
 \subsection{Process Model}
 \textit{(Can Güleç, 1.4)}\quad
@@ -107,11 +143,12 @@ $$M' = (M - \bullet t) + t\bullet$$
  Invisible transitions can be created during the BPMN to Petri net conversion because real-world process models (like BPIC-17) are full of routing logic. The parallel splits, XOR gateways, loops, etc. show up as unlabeled transitions in the Petri net. If the engine only looked at visible activities, it would get stuck behind these silent gateways and think the process had deadlocked, even though it hadn't. To overcome this problem, we added a breadth first search step inside the state-checking logic. The transitions are automatically traversed with it until a visible activity is found. Therefore, the engine can identify all possible executable activities. Once an activity is executed, the transition corresponding to the activity is fired and the case marking is updated. Since the engine updates the case marking after every activity is executed, every simulated case is guaranteed to follow the control flow defined by the BPMN model.
 
 \subsection{Branching Decisions}
-\textit{(Joao, 1.5)}\quad
+\textit{(João, 1.5)}\quad
 \input{sections/branching_joao}
 
 \subsubsection{Evaluation}
-\textit{(Joao)}\quad
+\label{ssub:branching-eval}
+\textit{(João)}\quad
 \input{sections/branching_eval_joao}
 
 \input{sections/resource_modeling}
@@ -134,24 +171,28 @@ $$M' = (M - \bullet t) + t\bullet$$
 \subsection{Evaluation}\label{subsec:eval}
 
 \subsubsection{Settings and Protocol}
-\textit{(Joao, F)}\quad
-\input{sections/evaluation_protocol_joao}
+\textit{(João, F)}\quad
+\input{sections/settins_and_protocol}
+
 
 \subsubsection{Base Heuristics}
-\textit{(Joao, A)}\quad
+\textit{(João, A)}\quad
 \input{sections/base_heuristics_eval_joao}
 
 \subsubsection{Kunkler Formalization}
 \textit{(Thomas, C)}\quad
 
-\subsubsection{Park Formalization}
-\textit{(Joao, C)}\quad
+This subsection references the work \cite{kunklerRinderleMa}. It implements their approach using an assignment problem. As time estimates, means are used because they are more stable and simpler.
+When using more complex processing-time predictors, situations can arise in which work across all tasks may take longer. In order to avoid allocating no resources, a two-phase adjustment algorithm is implemented that is inspired by the Transmission Control Protocol's (TCP) congestion control. If too few assignments are allocated, a factor is increased so that the average processing time for the dummy assignment options, representing the no-allocation option, increases. This increase is exponential until almost all tasks get allocated. Then, the increase is linear. As with TCP, the factor decreases if many resources are allocated. By using 
+
+\subsubsection{Park and Song Formalization}
+\textit{(João, C)}\quad
 \input{sections/parksong_eval_joao}
 
 \input{sections/rl_evaluation}
 
 \subsubsection{Cross-Method Synthesis}\label{ssub:cross-eval}
-\textit{(Joao, F)}\quad
+\textit{(João, F)}\quad
 \input{sections/cross_method_joao}
 
 \subsubsection{Slide-23 Question}
@@ -191,14 +232,11 @@ After removal (147 resources) & 0.26 & 0.159 & 0.808 \\
 As expected, removing two resources caused only a very small increase in average cycle time (0.25 to 0.26 days), indicating that the overall processing capacity is largely unaffected. This is consistent with the low utility of the selected resources. The remaining metrics changed only slightly. The average resource occupation decreased slightly, despite the reduced workforce, because the simulation also completed slightly fewer cases (579 instead of 583). Similarly, the fairness metric (Gini) increased only by 0.007. This suggests a slightly less balanced workload distribution after the remaining tasks were redistributed among the available resources.
 Overall, the experiment confirms that removing User\_76 and User\_108 has a very minor impact on system performance. The observed differences are small and likely influenced by the stochastic nature of the simulation. A better assessment would repeat both scenarios with multiple random seeds and compare the results.
 
-\section{Use of AI Tools}\label{sec:ai}
-\input{sections/ai_tools}
 
 \bibliographystyle{plain}
 \bibliography{references}
 
 \appendix
 \input{sections/appendix}
-\input{sections/joao_appendix}
 
 \end{document}

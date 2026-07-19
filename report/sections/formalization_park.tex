@@ -1,59 +1,44 @@
-\subsubsection{Park Formalization}\label{ssub:park}
-\textit{(Joao, C)}\quad
-The advanced allocation method is inspired by Park and Song's idea of using
-predictive process monitoring for prescriptive resource allocation
-decisions~\cite{park2023predictiveallocation}. Their work combines predictions
-about running cases with an optimization step for non-clairvoyant process
-instances. The implementation in this simulator keeps the central idea, namely
-using predicted future work to influence current resource allocation, but it uses
-a lightweight assignment heuristic instead of reproducing the full minimum-cost
-maximum-flow formulation.
+\subsubsection{Park and Song Formalization}
+\label{ssub:park}
+\textit{(João, C)}\quad
 
-At each allocation epoch, the method constructs two candidate sets. The first set
-contains currently enabled waiting tasks, which can be assigned immediately to
-available authorized resources. The second set contains predicted future tasks.
-Predicted candidates cannot be executed immediately; they can only create a
-reservation, meaning that a compatible resource is intentionally kept idle for a
-predicted case/activity pair. Before a prediction is consumed by the allocator,
-the integration layer filters it against the currently BPMN-valid candidate
-activities. Thus, reservations are restricted to process-model-compatible future
-work.
+The advanced allocation method is inspired by Park and Song's
+prediction-based resource-allocation approach
+\cite{park2019predictionbased,park2023predictiveallocation}. It uses predicted
+future work to influence current assignments, but implements this idea as a
+rolling-epoch heuristic rather than as the original minimum-cost maximum-flow
+model.
 
-For a resource $r$ and candidate $t$, the pairwise assignment cost is
+At each allocation epoch, the method considers currently enabled tasks and
+predicted future case--activity pairs. Current tasks can be assigned directly
+to available and authorized resources. Selecting a predicted candidate creates
+a reservation, which keeps a compatible resource idle until the task is
+expected to become available. Predictions are filtered against BPMN-valid
+future activities before they enter the allocation problem.
+
+For a resource $r$ and candidate $t$, the pairwise cost is
+
 \[
-C(r,t) = \hat{p}(r,t) - \alpha_w\,w(t) - \alpha_\pi\,\pi(t) + \rho(r,t),
+C(r,t)=
+\frac{\hat{p}(r,t)}{\tau}
+-\alpha_w\frac{w(t)}{\tau}
+-\alpha_\pi\pi(t)
++\rho(r,t),
 \]
+
 where $\hat{p}(r,t)$ is the estimated processing time, $w(t)$ is the current
-waiting time and $\pi(t)$ is the task priority. The first term favors
-resource-task pairs with shorter expected processing time, while the negative
-waiting and priority terms make already-waiting or important tasks more
-attractive. For currently enabled tasks, the prediction penalty $\rho$ is $0$.
-For predicted future candidates,
-\[
-\rho(r,t) = \lambda_u(1-P(t)) + \lambda_n(1-P(t)) + \lambda_d d(t),
-\]
-where $P(t)$ is the prediction probability, $d(t)$ is the expected delay,
-$\lambda_u$ controls uncertainty aversion, $\lambda_n$ is the no-show penalty and
-$\lambda_d$ controls the penalty for reserving a resource for a distant future
-task. The canonical run normalizes time costs by one hour, uses a no-show weight
-of $1.0$ and disables the additional future-delay term. This makes strategic
-idling possible but conservative: uncertain predictions must compensate their
-penalty before they can dominate already waiting work.
+waiting time, $\pi(t)$ is the task priority, and $\tau$ is the time scale.
+Short processing times reduce the cost, while waiting time and priority favor
+urgent tasks.
 
-Rather than selecting independently for each resource, the implementation solves
-a global assignment problem for the current allocation epoch. Rows correspond to
-available resources and columns correspond to current or predicted candidates.
-Infeasible resource-candidate pairs are masked out, each candidate can be used at
-most once and dummy idle columns are available as fallback options. The allocator
-also exposes a one-step temporal lookahead extension: a currently enabled task
-can receive an additional penalty if assigning it would keep the resource busy
-beyond the expected arrival time of a compatible predicted task inside the
-planning horizon.
+For current tasks, $\rho(r,t)=0$. For predicted candidates, it captures configurable terms such as prediction uncertainty, expected idling time,
+no-show risk, and potential future delay. In the canonical configuration, only a subset of these terms is active; the
+corresponding parameters are reported in App. ~\ref{app:joao-parksong-diagnostics}.
 
-This method should therefore be interpreted as a simulator-compatible,
-rolling-epoch approximation inspired by Park and Song, not as a complete
-reimplementation of the original optimization model. It does not solve a
-multi-period MILP or stochastic min-cost flow and it does not construct a full
-future schedule. Its quality depends on the prediction stream, calibration,
-train-split processing-time estimates, reservation thresholds and release rules.
-These empirical effects are discussed only in the evaluation section.
+Assignments are selected jointly within each allocation epoch using the
+Hungarian algorithm. Available resources form the rows, while current tasks,
+predicted candidates, and idle choices form the columns. Infeasible pairs are
+excluded, and each candidate can be selected at most once.
+
+The method is therefore a reservation-based approximation of Park and Song's
+approach, not a full multi-period stochastic optimizer.

@@ -1,2 +1,0 @@
-model,training_dataset_mode,bpmn_model,train_ratio,train_events,test_events,train_cases,test_cases,feature_columns,accuracy,macro_f1,weighted_f1,n_samples
-PredictiveML_BPMNReplay_with_ProbabilityFallback,bpmn_replay,models/v4_replay.bpmn,0.6,730044,472223,18905,12604,"case:ApplicationType, case:LoanGoal, case:RequestedAmount, CreditScore, EventOrigin, org:resource",1.0,1.0,1.0,17610

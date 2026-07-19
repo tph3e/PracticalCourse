@@ -4,17 +4,7 @@ The allocation policy is learned as a deep-RL agent, faithful to Middelhuis et
 al.~\cite{middelhuis2025rl}. The environment is a discrete-event simulation of the process, the ``simulator'' the paper trains in, calibrated to BPIC-17 through our own engines
 (interarrival gaps from the arrival engine, per-activity processing and waiting times and
 BPMN-valid case sequences from the process model and branching engine). The Markov decision
-process matches the paper (Fig.~\ref{fig:rl_mdp}):
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=\columnwidth]{figures/rl_mdp_schematic.png}
-    \caption{Markov decision process for the allocation policy (Aldo Patrone), matching Middelhuis
-    et al.: a $2|R|+|A|$ state, a masked $(\text{resource},\text{activity})$ action space plus
-    postpone and a cycle-time reward, learned with MaskablePPO on the calibrated discrete-event
-    environment and deployed onto the integrated engine via a per-task reduction.}
-    \label{fig:rl_mdp}
-\end{figure}
+process matches the paper (Appendix Fig.~\ref{fig:rl_mdp}):
 
 \begin{itemize}
   \item \textbf{State} ($2|R|+|A|$): for every resource a busy flag $\delta_i\in\{0,1\}$ and,
@@ -35,21 +25,10 @@ variable feasible-action set through the mask. Postponing accrues the same time-
 idling is discouraged without an artificial cost. A bounded fallback forces the least-loaded
 assignment after repeated postpones to keep training stable.
 
-The two learners optimize the standard objectives. MaskablePPO maximizes the clipped surrogate
-\[
-L^{\mathrm{CLIP}}(\theta)=\hat{\mathbb{E}}_t\!\big[\min\!\big(\rho_t\hat{A}_t,\;
-\mathrm{clip}(\rho_t,1{-}\epsilon,1{+}\epsilon)\,\hat{A}_t\big)\big],
-\]
-\[
-\quad
-\rho_t=\tfrac{\pi_\theta(a_t\mid s_t)}{\pi_{\theta_{\mathrm{old}}}(a_t\mid s_t)},
-\]
-while the REINFORCE baseline follows the policy-gradient rule
-\[
-\nabla_\theta J=\hat{\mathbb{E}}_t\!\big[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,(G_t-b)\big],
-\]
-with advantage $\hat{A}_t$, return-to-go $G_t$ and a running baseline $b$. Infeasible actions are
-zeroed in $\pi_\theta$ before normalization.
+The two learners optimize the standard objectives. MaskablePPO maximizes the clipped PPO surrogate,
+with the action mask zeroing infeasible actions before normalization, and REINFORCE follows the
+policy-gradient rule~\cite{williams1992reinforce, sutton2018rl} with a return-to-go advantage and a
+running baseline.
 
 The learned policy is deployed onto the integrated simulator through the swappable
 \emph{AllocationStrategy.pick(candidates, context)} interface. Because the engine allocates one
@@ -61,10 +40,13 @@ not observable at a single decision, so it is reduced to the locally known waiti
 a disclosed reduced-observation deployment, while the full $\kappa$ evaluation is carried out in
 the paper-style environment itself.
 
-As a lightweight baseline we additionally implemented, from scratch in pure \emph{numpy}, a
-per-candidate-scoring REINFORCE~\cite{williams1992reinforce, sutton2018rl} policy on the same
-calibrated environment. It is exploratory and
-not claimed to be paper-faithful, and it serializes to JSON so its deployment needs no
-machine-learning dependency at runtime. Hyperparameters and the learning curve are in the Appendix
-(Table~\ref{tab:rl_hparams}, Fig.~\ref{fig:rl_curve}). The policy is evaluated against the other
-methods in Sec.~\ref{ssub:rl-eval}.
+As a lightweight counterpart to MaskablePPO we implemented, from scratch in pure \emph{numpy}, a
+per-candidate-scoring REINFORCE~\cite{williams1992reinforce, sutton2018rl} policy. For a
+like-for-like comparison it is trained in the \emph{same} paper-faithful environment as PPO
+(identical dynamics and reward), acting through the per-task decision interface, so both learned
+policies are scored on the same footing in Sec.~\ref{ssub:rl-eval}. A
+fairness-weight sensitivity over $w_{\mathrm{fair}}\in\{0,1,5\}$ (Appendix
+Fig.~\ref{fig:alloc_cmp_plot}) tests whether any fairness difference is a real algorithmic property
+rather than an artifact of the reward weight. The numpy policy serializes to JSON so its deployment
+needs no machine-learning dependency at runtime, and its hyperparameters are in
+Table~\ref{tab:rl_hparams}.

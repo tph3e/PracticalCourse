@@ -1,6 +1,0 @@
-{
-  "mode": "pretrained_artifact",
-  "branching_artifact": "joao/models/branching/composite_branching_evaluation_train70.pkl",
-  "artifact_sha256": "ebb16554ecf0e42faa87c7334faef3ab81b742b8e29820df1ce032bd4109f1c4",
-  "evaluation_log_used_for_training_constraints": false
-}

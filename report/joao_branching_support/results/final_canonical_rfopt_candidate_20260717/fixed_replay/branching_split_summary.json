@@ -1,6 +1,0 @@
-{
-  "mode": "pretrained_artifact",
-  "branching_artifact": "joao/models/branching/composite_branching_evaluation_train70_rfopt_v1.pkl",
-  "artifact_sha256": "490da841440cd019a0819892ab659e5b61f5ee55182f6db12a536a9c4d23ff82",
-  "evaluation_log_used_for_training_constraints": false
-}

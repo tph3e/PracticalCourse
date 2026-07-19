@@ -18,9 +18,7 @@ off-hours noise. Writing $n_r(w,h)$ for resource $r$'s event count in bucket $(w
 \[
 \mathrm{Cal}_r=\big\{(w,h): n_r(w,h)\ge \max(1,\ \tau\cdot\!\max_{w',h'} n_r(w',h'))\big\},
 \]
-\[
-\tau=0.1,
-\]
+$\tau=0.1$
 and at time $t$ the available set is $A(t)=\{r:(\mathrm{wd}(t),\mathrm{hr}(t))\in\mathrm{Cal}_r\}$.
 The design decision here is data-driven: BPIC-17 carries no
 system-vs-human attribute and most resources act across several lanes, so a

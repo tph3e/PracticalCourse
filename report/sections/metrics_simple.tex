@@ -1,38 +1,36 @@
 \subsubsection{Simple Metrics}\label{ssub:metrics}
 \textit{(Aldo Patrone)}\quad
 Three metrics quantify allocation quality, all computed from the simulation event log
-(identical schema to the real log, so they are validated against it).
-\emph{Average cycle time} is the per-case span. \emph{Average resource occupation}
-is busy time over available time, where busy time is the \emph{union} of a
-resource's activity intervals rather than their sum, since real resources juggle
-overlapping waiting work items and summing would exceed $100\%$. A resumed activity is
-timed from its resume event, so the suspend and resume transitions the simulator emits
-enter the busy interval correctly. The denominator is each resource's available time
-from the learned availability calendars rather than the wall-clock window, which is far
-more meaningful (Table~\ref{tab:metrics_ref}: $27\%$ vs.\ $96\%$). \emph{Resource fairness} is the Gini coefficient over per-resource load
-(lower is fairer), with a weighted variant that normalizes by availability. The same
-\emph{compute\_all} routine doubles as the reward signal for the RL policy
+(identical schema to the real log, so they are validated against it). For cases $C$,
+resources $R$ and a resource's activity intervals $[s_{r,k},e_{r,k}]$:
+
+\emph{Average cycle time} is the mean per-case span from first to last event
+(Def.~14 of~\cite{middelhuis2025rl}),
+\[
+\overline{CT}=\frac{1}{|C|}\sum_{c\in C}\Big(\max_{e\in c}t(e)-\min_{e\in c}t(e)\Big).
+\]
+
+\emph{Average resource occupation} is busy time over available time,
+\[
+\overline{occ}=\frac{1}{|R|}\sum_{r\in R}\frac{\big|\bigcup_k[s_{r,k},e_{r,k}]\big|}{\mathrm{avail}_r}.
+\]
+Busy time is the \emph{union} of a resource's activity intervals rather than their sum, since
+overlapping waiting work items would otherwise exceed $100\%$, and a resumed activity is timed
+from its resume event. The denominator is each resource's available time from the learned
+calendars (Sec.~\ref{subsec:resources}) rather than the wall-clock window, which is far more
+meaningful (Table~\ref{tab:metrics_ref}: $27\%$ vs.\ $96\%$).
+
+\emph{Resource fairness} is the Gini coefficient over the per-resource load $x_r$ (lower is fairer),
+\[
+G=\frac{\sum_{i}\sum_{j}\lvert x_i-x_j\rvert}{2\,|R|\sum_i x_i}.
+\]
+The load $x_r$ is busy seconds, or the availability-normalized $x_r=\text{busy}_r/\mathrm{avail}_r$
+for the weighted variant, a scale-invariant form of the course's ``deviation from the average
+occupation''.
+
+The same \emph{compute\_all} routine doubles as the reward signal for the RL policy
 (Sec.~\ref{subsec:rl}) and as the metric basis for the overall method comparison
 (Sec.~\ref{ssub:cross-eval}).
-
-Formally, for cases $C$, resources $R$ and a resource's activity intervals
-$[s_{r,k}, e_{r,k}]$, the three metrics of Lecture~6 are
-\[
-\overline{CT}=\frac{1}{|C|}\sum_{c\in C}\Big(\max_{e\in c}t(e)-\min_{e\in c}t(e)\Big),
-\]
-\[
-\quad
-\overline{occ}=\frac{1}{|R|}\sum_{r\in R}\frac{\big|\bigcup_k[s_{r,k},e_{r,k}]\big|}{\mathrm{avail}_r},
-\]
-\[
-G=\frac{\sum_{i}\sum_{j}\lvert x_i-x_j\rvert}{2\,|R|\sum_i x_i}\quad(\text{lower is fairer}),
-\]
-where $\overline{CT}$ is the per-case span (Def.~14 of~\cite{middelhuis2025rl}), the busy
-time is the \emph{union} of intervals, $\mathrm{avail}_r$ is the available time from the learned
-calendars (Sec.~\ref{subsec:resources}), and the fairness Gini $G$ is taken over the per-resource
-load $x_r$ (busy seconds, or availability-normalized $x_r=\text{busy}_r/\mathrm{avail}_r$ for the
-weighted variant), a scale-invariant form of the course's ``deviation from the average
-occupation''.
 
 \begin{table}[!h]
     \caption{Evaluation metrics on the real BPIC-17 log.}

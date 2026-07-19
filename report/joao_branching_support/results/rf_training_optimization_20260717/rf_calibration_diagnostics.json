@@ -1,5 +1,0 @@
-{
-  "tested": false,
-  "adopted": false,
-  "reason": "RF probabilities are used for BPMN-constrained class ranking, but no calibrated artifact is adopted in this simplification phase; selection target is macro-F1 on inner validation."
-}

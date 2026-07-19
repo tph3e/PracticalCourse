@@ -1,0 +1,26 @@
+For the main comparison, we use a fixed-replay benchmark so that differences
+primarily reflect the allocation strategy. Each method receives the same $76$
+temporally held-out historical routes, case arrivals, and simulator settings.
+We repeat the benchmark with seeds $1$--$5$, yielding $380$ fixed-route runs
+per method.
+
+The compared methods are R-RRA, R-SHQ, ParkSong-Composite,
+Kunkler-Rinderle-Ma, and Batch. They use the same development-selected RF
+branching configuration. The processing-time estimates used by ParkSong are
+derived exclusively from the training partition.
+
+The BPMN model provides BPMN-valid transition candidates and is also used for
+conformance diagnostics. If a diagnostic transition cannot be fired, fixed
+replay nevertheless continues along the historical route. Completion therefore
+denotes completion of the fixed historical route, not necessarily attainment
+of the BPMN final marking.
+
+The experiment uses a $24$-hour arrival window followed by a $60$-day drain
+horizon. Cycle time is calculated only for completed routes. Waiting time is
+measured from entry into the resource queue until resource assignment, while
+throughput and occupation use the full arrival-plus-drain horizon.
+
+Incomplete routes are reported separately; cycle-time results must therefore
+be interpreted jointly with completion. Per-seed results and variability are
+reported in App.~\ref{app:joao-fixed-replay-details}. The findings are
+interpreted descriptively over $76$ routes and five seeded repetitions.
