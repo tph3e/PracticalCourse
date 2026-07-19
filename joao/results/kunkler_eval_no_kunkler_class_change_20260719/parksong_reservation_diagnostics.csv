@@ -1,0 +1,6 @@
+strategy,seed,predictions_consumed,prediction_execution_matches,prediction_execution_mismatches,reservations_created,reservations_used,reservations_expired,reservations_cancelled,unresolved_reservations,reservation_utilization_rate,reservations_rejected_by_probability_threshold,reservations_filtered_by_reservation_margin,reservations_rejected_by_no_show_penalty,global_assignment_calls,feasible_candidate_pairs,average_candidate_count,simulation_runtime_seconds
+Kunkler-Rinderle-Ma,1,0,469,540,0,0,0,0,0,,0,0,0,0,0,,3.9158800830000473
+Kunkler-Rinderle-Ma,2,0,473,530,0,0,0,0,0,,0,0,0,0,0,,4.344224874999782
+Kunkler-Rinderle-Ma,3,0,464,545,0,0,0,0,0,,0,0,0,0,0,,4.853489458999775
+Kunkler-Rinderle-Ma,4,0,456,553,0,0,0,0,0,,0,0,0,0,0,,6.032654749999892
+Kunkler-Rinderle-Ma,5,0,480,529,0,0,0,0,0,,0,0,0,0,0,,2.084389541999826

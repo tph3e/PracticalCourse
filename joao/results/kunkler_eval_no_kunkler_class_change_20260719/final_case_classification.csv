@@ -1,0 +1,6 @@
+cases_admitted,cases_observed,fixed_routes_completed,cases_completed,cases_incomplete,cases_deadlocked,cases_cyclic,cases_censored,fixed_route_completion_rate,completion_rate,active_cases_remaining,waiting_queue_remaining,strategy,seed
+76,76,76,76,0,0,0,0,1.0,1.0,0,0,Kunkler-Rinderle-Ma,1
+76,76,75,75,1,0,0,1,0.986842105263158,0.986842105263158,0,0,Kunkler-Rinderle-Ma,2
+76,76,76,76,0,0,0,0,1.0,1.0,0,0,Kunkler-Rinderle-Ma,3
+76,76,76,76,0,0,0,0,1.0,1.0,0,0,Kunkler-Rinderle-Ma,4
+76,76,76,76,0,0,0,0,1.0,1.0,0,0,Kunkler-Rinderle-Ma,5

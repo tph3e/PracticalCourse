@@ -28,8 +28,18 @@ class _QuantileProcessTimeShim:
 
     def getMedian(self, activity, resource):
         engine = self.processing_time_engine
-        value = engine.getMedian(activity, resource)
-        return value
+        if engine is not None and hasattr(engine, "getMedian"):
+            value = engine.getMedian(activity, resource)
+            seconds = self._seconds(value)
+            if seconds > 0:
+                return seconds
+        if engine is not None and hasattr(engine, "sampleTime_basic"):
+            value = engine.sampleTime_basic(activity, resource, "processing")
+            seconds = self._seconds(value)
+            if seconds > 0:
+                return seconds
+        self.fallback_count += 1
+        return self.default_seconds
 
 
     def getQuantileValue(self, task: Task, q_value: float) -> float:

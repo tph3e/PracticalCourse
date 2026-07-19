@@ -1,0 +1,9 @@
+{
+  "python": "3.14.3 (v3.14.3:323c59a5e34, Feb  3 2026, 11:41:37) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "pandas": "3.0.2",
+  "numpy": "2.4.4",
+  "git_branch": "main",
+  "git_status_short": "M joao/src/resource_allocation/KunklerAllocationAdapter.py\n M processTimes/process_time_engine.py\n M resources/resource_engine.py\n?? joao/results/kunkler_eval_check_20260719/\n?? joao/results/kunkler_eval_median_fix_20260719/\n?? joao/results/kunkler_eval_median_fix_full_20260719/\n?? joao/results/kunkler_eval_median_fix_smoke_20260719/\n?? joao/results/kunkler_eval_median_fix_smoke_20260719_escalated/\n?? joao/results/kunkler_eval_median_fix_smoke_20260719_fixed/\n?? joao/results/kunkler_eval_no_kunkler_class_change_20260719/\n?? report/joao_branching_support/\n?? report/joao_evaluation_protocol_support/",
+  "git_log_head": "2bfa09f (HEAD -> main, origin/main, origin/HEAD) Adjustments and fixes"
+}

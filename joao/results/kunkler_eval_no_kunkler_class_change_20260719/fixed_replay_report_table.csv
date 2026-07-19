@@ -1,0 +1,2 @@
+Method,Fixed-route completion,Mean cycle time,Mean waiting time,Horizon-normalized throughput,Horizon-normalized occupation,Fairness,Weighted fairness
+Kunkler-Rinderle-Ma,0.9973684210526315,50515.39804556238,551.1942503609874,0.05177595628415298,0.0005451456219732001,0.8861394018230285,0.0006605410538341

@@ -1,0 +1,59 @@
+{
+  "data_path": "/Users/joaofmzuffo/Documents/University/TUM/Bachelor/SS_2026/Praktikum/correcoes/comparative_evaluation_fixed_replay/PracticalCourse/data/logData.xes",
+  "data_sha256": "d653a36d36fac668638d65c90b803670bab6e599aa23e3f7dd4f0d5d0b216b1c",
+  "branching_artifact": "joao/models/branching/final_composite_branching_sklearn190.pkl",
+  "branching_sha256": "9cc504fc84603a8db5a2a00507b329c0fbcf6303aa948990dcf14f10289b48ab",
+  "branching_metadata": {
+    "training_log": "data/logData.xes",
+    "training_log_sha256": "d653a36d36fac668638d65c90b803670bab6e599aa23e3f7dd4f0d5d0b216b1c",
+    "training_events": 1202267,
+    "training_cases": 31509,
+    "seed": 1,
+    "selected_validation_train_ratio": 0.6,
+    "selected_validation_evidence": "joao/results/branching_sklearn190/final_predictive_model_split_comparison_sklearn190.csv",
+    "version_comparison": "joao/results/branching_sklearn190/version_comparison.csv",
+    "deployment_training_mode": "full_log_after_sklearn190_model_selection",
+    "feature_columns": [
+      "case:ApplicationType",
+      "case:LoanGoal",
+      "case:RequestedAmount",
+      "CreditScore",
+      "EventOrigin",
+      "org:resource"
+    ],
+    "composite_hierarchy": [
+      "PredictiveBranchingEngine",
+      "AttributeSamplingBranchingEngine",
+      "AttributeBasedBranchingEngine",
+      "ProbabilityBranchingEngine"
+    ],
+    "model_parameters": {
+      "PredictiveBranchingEngine": {
+        "model_type": "RandomForestClassifier",
+        "n_estimators": 100,
+        "max_depth": 8,
+        "min_samples_leaf": 2,
+        "class_weight": "balanced",
+        "seed": 1,
+        "fallback": "ProbabilityBranchingEngine"
+      }
+    },
+    "package_versions": {
+      "python": "3.14.3 (v3.14.3:323c59a5e34, Feb  3 2026, 11:41:37) [Clang 16.0.0 (clang-1600.0.26.6)]",
+      "scikit-learn": "1.9.0",
+      "scipy": "1.18.0",
+      "numpy": "2.5.1",
+      "pandas": "3.0.3",
+      "joblib": "1.5.3",
+      "pm4py": "2.7.23.1",
+      "rustxes": "0.2.11",
+      "pyarrow": "25.0.0"
+    },
+    "creation_context_timestamp": "2026-07-13T21:08:58.893963+00:00",
+    "full_log_training_seconds": 154.95143420800014,
+    "sklearn_version": "1.9.0",
+    "runtime_state_persisted": false
+  },
+  "processing_time_artifact": "joao/models/process_time/final_process_time_coverage_v2.pkl",
+  "processing_time_sha256": "c540304cdbb6f60159ad1023112e6d5e71aeecae68b885ee2e2b1ac3c826a886"
+}

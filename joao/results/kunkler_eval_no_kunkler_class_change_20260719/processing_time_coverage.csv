@@ -1,0 +1,6 @@
+strategy,seed,exact_resource_activity_model_calls,activity_level_fallback_calls,category_fallback_calls,global_fallback_calls,emergency_guard_calls,total_processing_time_sampling_calls,exact_resource_activity_model_rate,activity_level_fallback_rate,global_fallback_rate
+Kunkler-Rinderle-Ma,1,0,0,0,0,987,987,0.0,0.0,0.0
+Kunkler-Rinderle-Ma,2,0,0,0,0,983,983,0.0,0.0,0.0
+Kunkler-Rinderle-Ma,3,0,0,0,0,987,987,0.0,0.0,0.0
+Kunkler-Rinderle-Ma,4,0,0,0,0,987,987,0.0,0.0,0.0
+Kunkler-Rinderle-Ma,5,0,0,0,0,987,987,0.0,0.0,0.0

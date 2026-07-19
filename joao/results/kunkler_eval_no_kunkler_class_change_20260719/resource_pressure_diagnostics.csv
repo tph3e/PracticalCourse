@@ -1,0 +1,6 @@
+strategy,seed,allocation_epochs,epochs_with_waiting_tasks,epochs_with_zero_eligible_resource,epochs_with_less_eligible_resources_than_waiting_tasks,epochs_with_all_eligible_resources_occupied,epochs_with_resources_unavailable_by_calendar,average_waiting_tasks_per_allocation_epoch,average_eligible_resources_per_waiting_task,fraction_tasks_waited_no_available_eligible_resource,max_waiting_queue_length,mean_waiting_queue_length,fraction_epochs_strategic_idling_feasible
+Kunkler-Rinderle-Ma,1,1410,1410,168,,0,,1.6333333333333333,23.752062527138516,0.0729483282674772,13,1.6333333333333333,6.534751773049646
+Kunkler-Rinderle-Ma,2,1407,1407,175,,0,,1.828002842928216,21.57542768273717,0.06804043545878694,15,1.828002842928216,8.860696517412935
+Kunkler-Rinderle-Ma,3,1404,1404,151,,0,,1.8646723646723646,20.75362872421696,0.05767761650114591,14,1.8646723646723649,7.812678062678063
+Kunkler-Rinderle-Ma,4,1405,1405,139,,0,,2.1637010676156585,17.26217105263158,0.04572368421052632,17,2.1637010676156585,7.635587188612099
+Kunkler-Rinderle-Ma,5,1320,1320,147,,0,,1.4522727272727274,30.56546687532603,0.07668231611893583,12,1.4522727272727274,7.743181818181818

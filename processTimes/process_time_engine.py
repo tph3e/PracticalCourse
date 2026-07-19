@@ -26,8 +26,22 @@ PATH_LOG_TRAINING = "data/BPI Challenge 2017.xes"
 
 class ProcessTimeEngine:
 
-    def __init__(self, log=None, seed=1, waiting_advanced=False, processing_advanced=False, metricProcessing=False):
+    def __init__(
+        self,
+        log=None,
+        seed=1,
+        waiting_advanced=False,
+        processing_advanced=False,
+        metricProcessing=False,
+        model_path=None,
+        n_jobs=None,
+    ):
         self.metricProcessing=metricProcessing
+        self.model_path = str(model_path or PATH_MODELS)
+        self.model_loaded = False
+        self.model_retrained = False
+        self.model_load_error = None
+        self.n_jobs = int(n_jobs if n_jobs is not None else os.environ.get("PROCESS_TIME_N_JOBS", "-1"))
         if metricProcessing:
             return
 
@@ -43,15 +57,20 @@ class ProcessTimeEngine:
         self.fallback_models_basic = {}
         self.models_median={}
         #if the models are already trained they do not have to be retrained
-        if os.path.exists(PATH_MODELS):
-            models = joblib.load(PATH_MODELS)
-            self.models_basic = models["basic"]
-            self.models_quantiles = models["quantiles"]
-            self.models_advanced = models["advanced"]
-            self.fallback_models_basic = models.get("fallback_basic", {})
-            self.models_median = models["median"]
-            print("[ProcessTimeEngine] Loaded models successfully")
-            return
+        if os.path.exists(self.model_path):
+            try:
+                models = joblib.load(self.model_path)
+                self.models_basic = models.get("basic", {})
+                self.models_quantiles = models.get("quantiles", {})
+                self.models_advanced = models.get("advanced", {})
+                self.fallback_models_basic = models.get("fallback_basic", {})
+                self.models_median = models.get("median", {})
+                self.model_loaded = True
+                print("[ProcessTimeEngine] Loaded models successfully")
+                return
+            except Exception as exc:
+                self.model_load_error = str(exc)
+                print(f"[ProcessTimeEngine] Failed to load models from {self.model_path}: {exc}. Retraining.")
         
         else:
             #if the log is empty (no propper log was given), the log is manually loaded
@@ -69,8 +88,9 @@ class ProcessTimeEngine:
                 "median": self.models_median
             }
             #ensure directory exists before dumping
-            os.makedirs(os.path.dirname(PATH_MODELS), exist_ok=True)
-            joblib.dump(models, PATH_MODELS)
+            os.makedirs(os.path.dirname(self.model_path) or ".", exist_ok=True)
+            joblib.dump(models, self.model_path)
+            self.model_retrained = True
 
     def _fit_distribution(self, times_data, null_count):
         """Helper method to fit distributions and return the best one based on AIC."""
@@ -169,7 +189,7 @@ class ProcessTimeEngine:
                 param_grid=param_grid,
                 cv=3,
                 scoring='neg_mean_absolute_error',
-                n_jobs=-1,
+                n_jobs=self.n_jobs,
                 verbose=0
             )
             grid_search.fit(X, y)
@@ -202,7 +222,7 @@ class ProcessTimeEngine:
                     param_grid=param_grid_gb,
                     cv=3,
                     scoring=pinball_scorer,
-                    n_jobs=-1,
+                    n_jobs=self.n_jobs,
                     verbose=0
                 )
                 
@@ -306,6 +326,8 @@ class ProcessTimeEngine:
     
     def sample_distrib(self, distrib, param) -> timedelta:
         if distrib == "poisson":
+            if hasattr(self.rng, "poisson"):
+                return timedelta(seconds=self.rng.poisson(param["lambda"]))
             return timedelta(seconds=stats.poisson.rvs(mu = param["lambda"], random_state=self.rng))
         if distrib == "gamma":
             return timedelta(seconds=stats.gamma.rvs(param["shape"], loc=0, scale=param["scale"], random_state=self.rng))
@@ -319,11 +341,19 @@ class ProcessTimeEngine:
         else:
             return self.sampleTime_basic(event.activity, event.resource, "processing")
         
-    def getWaitingTime(self, event: Event) -> timedelta:
+    def getWaitingTime(self, event: Event, next_activity=None) -> timedelta:
+        activity = next_activity or event.activity
         if self.waiting_advanced:
-            return self.sampleTime_advanced(event, "waiting")
+            if next_activity is None:
+                return self.sampleTime_advanced(event, "waiting")
+            original_activity = event.activity
+            event.activity = activity
+            try:
+                return self.sampleTime_advanced(event, "waiting")
+            finally:
+                event.activity = original_activity
         else:
-            return self.sampleTime_basic(event.activity, event.resource, "waiting")
+            return self.sampleTime_basic(activity, event.resource, "waiting")
            
 
     def sampleTime_basic(self, activity, resource="", kind="processing") -> timedelta:
