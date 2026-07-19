@@ -6,9 +6,14 @@ from datetime import datetime, timedelta
 from scipy import stats
 import sklearn.ensemble, sklearn.pipeline, sklearn.compose, sklearn.preprocessing, sklearn.impute
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.datasets import make_friedman1
+from sklearn.tree import plot_tree
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_pinball_loss, make_scorer
 import numpy as np
 import joblib
 import warnings
+import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore", category=RuntimeWarning, module="scipy.stats")
 current = os.path.dirname(os.path.realpath(__file__))
@@ -21,15 +26,7 @@ PATH_LOG_TRAINING = "data/BPI Challenge 2017.xes"
 
 class ProcessTimeEngine:
 
-    def __init__(
-        self,
-        log=None,
-        seed=1,
-        waiting_advanced=True,
-        processing_advanced=True,
-        metricProcessing=False,
-        model_path=None,
-    ):
+    def __init__(self, log=None, seed=1, waiting_advanced=False, processing_advanced=False, metricProcessing=False):
         self.metricProcessing=metricProcessing
         if metricProcessing:
             return
@@ -44,16 +41,16 @@ class ProcessTimeEngine:
         self.models_quantiles = {}
         self.models_advanced = {}
         self.fallback_models_basic = {}
+        self.models_median={}
         #if the models are already trained they do not have to be retrained
-        path_models = model_path or PATH_MODELS
-        if os.path.exists(path_models):
-            models = joblib.load(path_models)
+        if os.path.exists(PATH_MODELS):
+            models = joblib.load(PATH_MODELS)
             self.models_basic = models["basic"]
             self.models_quantiles = models["quantiles"]
             self.models_advanced = models["advanced"]
             self.fallback_models_basic = models.get("fallback_basic", {})
-            self.model_path = path_models
-            print(f"[ProcessTimeEngine] Loaded models successfully from {path_models}")
+            self.models_median = models["median"]
+            print("[ProcessTimeEngine] Loaded models successfully")
             return
         
         else:
@@ -68,7 +65,8 @@ class ProcessTimeEngine:
                 "basic": self.models_basic,
                 "quantiles": self.models_quantiles,
                 "advanced": self.models_advanced,
-                "fallback_basic": self.fallback_models_basic
+                "fallback_basic": self.fallback_models_basic,
+                "median": self.models_median
             }
             #ensure directory exists before dumping
             os.makedirs(os.path.dirname(PATH_MODELS), exist_ok=True)
@@ -124,6 +122,8 @@ class ProcessTimeEngine:
                         self.fallback_models_basic[f"{activity}_{kind}"] = self._fit_distribution(times_data, null_count)
 
             for (activity, resource), group in event_times.groupby(["concept:name", "org:resource"]):
+
+                self.models_median[f"{activity}_{resource}"] = group["processing_time"].median()
                 for kind in ("processing", "waiting"):
                     times_data = group[kind+"_time"]
                     null_count = sum(times_data == 0)
@@ -151,21 +151,66 @@ class ProcessTimeEngine:
             y = event_times[f"{kind}_time"]
             if y.sum() == 0:
                 continue
-            model = sklearn.pipeline.Pipeline(steps=[
-                ('preprocessor', sklearn.base.clone(preprocessor)),
-                ('regressor', sklearn.ensemble.RandomForestRegressor(n_estimators=100, random_state=self.rndm_state, max_depth=10))
-            ])
 
-            model.fit(X, y)
-            self.models_advanced[f"{kind}"] = model
+            print(f"[ProcessTimeEngine] Starting Grid Search for '{kind}' time model...")
+            
+            pipeline = sklearn.pipeline.Pipeline(steps=[
+                ('preprocessor', sklearn.base.clone(preprocessor)),
+                ('regressor', sklearn.ensemble.RandomForestRegressor(random_state=self.rndm_state))
+            ])
+            #simplified to get faster calculations
+            param_grid = {
+                'regressor__n_estimators': [25, 50],
+                'regressor__max_depth': [5, 10, 15]
+            }
+
+            grid_search = GridSearchCV(
+                estimator=pipeline,
+                param_grid=param_grid,
+                cv=3,
+                scoring='neg_mean_absolute_error',
+                n_jobs=-1,
+                verbose=0
+            )
+            grid_search.fit(X, y)
+            print(f"[ProcessTimeEngine] {datetime.now().strftime('%H:%M:%S')} Best parameters for '{kind}': {grid_search.best_params_}")
+
+            self.models_advanced[f"{kind}"] = grid_search.best_estimator_
+
+            results_quantiles = {}
+            quantiles = [0.10, 0.50, 0.90]
 
             results_quantiles = {}
             for q in quantiles:
+                print(f"[ProcessTimeEngine] Starting Grid Search for '{kind}' time quantile {q}...")
+                
                 regressor = GradientBoostingRegressor(loss='quantile', alpha=q, random_state=self.rndm_state)
-                pipeline = sklearn.pipeline.Pipeline(steps=[('preprocessor', sklearn.base.clone(preprocessor)), ('regressor', regressor)])
-                pipeline.fit(X, y)
-                results_quantiles[round(q,2)] = pipeline
-            
+                pipeline = sklearn.pipeline.Pipeline(steps=[
+                    ('preprocessor', sklearn.base.clone(preprocessor)), 
+                    ('regressor', regressor)
+                ])
+                #also simplified to get faster calculations
+                param_grid_gb = {
+                    'regressor__n_estimators': [50, 100],
+                    'regressor__max_depth': [3, 5],
+                }
+                
+                pinball_scorer = make_scorer(mean_pinball_loss, alpha=q, greater_is_better=False)
+                
+                grid_search_gb = GridSearchCV(
+                    estimator=pipeline,
+                    param_grid=param_grid_gb,
+                    cv=3,
+                    scoring=pinball_scorer,
+                    n_jobs=-1,
+                    verbose=0
+                )
+                
+                grid_search_gb.fit(X, y)
+                print(f"[ProcessTimeEngine] Best parameters for quantile {q}: {grid_search_gb.best_params_}")
+                
+                results_quantiles[round(q, 2)] = grid_search_gb.best_estimator_
+
             self.models_quantiles[f"{kind}"] = results_quantiles
 
     def format_data(self, log: pd.DataFrame):
@@ -248,8 +293,6 @@ class ProcessTimeEngine:
                         "rework_count": rework_counts[group],
                         "final_timepoint": timestamps[i]
                     }
-                    if waiting_time.get(case,0)<0:
-                        print(waiting_time.get(case,0))
                     
                     if self.metricProcessing and "strain_time_difference" in log.columns:
                         infos["strain_time"] = log["strain_time_difference"].values[i]
@@ -263,14 +306,11 @@ class ProcessTimeEngine:
     
     def sample_distrib(self, distrib, param) -> timedelta:
         if distrib == "poisson":
-            return timedelta(seconds=int(self.rng.poisson(lam=param["lambda"])))
+            return timedelta(seconds=stats.poisson.rvs(mu = param["lambda"], random_state=self.rng))
         if distrib == "gamma":
-            return timedelta(seconds=int(self.rng.gamma(shape=param["shape"], scale=param["scale"])))
+            return timedelta(seconds=stats.gamma.rvs(param["shape"], loc=0, scale=param["scale"], random_state=self.rng))
         if distrib == "lognorm":
-            mu = np.log(param["scale"])
-            sigma = param["shape"]
-            sample = self.rng.lognormal(mean=mu, sigma=sigma)
-            return timedelta(seconds=int(sample))
+            return timedelta(seconds=stats.lognorm.rvs(param["shape"], loc=0, scale=param["scale"], random_state=self.rng)) 
         return timedelta(0)
     
     def getProcessingTime(self, event: Event) -> timedelta:
@@ -279,11 +319,11 @@ class ProcessTimeEngine:
         else:
             return self.sampleTime_basic(event.activity, event.resource, "processing")
         
-    def getWaitingTime(self, event: Event, activity: str | None = None) -> timedelta:
+    def getWaitingTime(self, event: Event) -> timedelta:
         if self.waiting_advanced:
-            return self.sampleTime_advanced(event, "waiting", activity=activity)
+            return self.sampleTime_advanced(event, "waiting")
         else:
-            return self.sampleTime_basic(activity or event.activity, event.resource, "waiting")
+            return self.sampleTime_basic(event.activity, event.resource, "waiting")
            
 
     def sampleTime_basic(self, activity, resource="", kind="processing") -> timedelta:
@@ -299,19 +339,18 @@ class ProcessTimeEngine:
         else:
             return timedelta(0)
     
-    def sampleTime_advanced(self, event: Event, kind="processing", activity: str | None = None) -> timedelta:        
-        activity_name = activity or event.activity
+    def sampleTime_advanced(self, event: Event, kind="processing") -> timedelta:        
         if kind not in self.models_advanced:
-            return self.sampleTime_basic(activity_name, event.resource, kind)
+            return self.sampleTime_basic(event.activity, event.resource, kind)
         
         context_df = pd.DataFrame([{
-            "concept:name": activity_name,
+            "concept:name": event.activity,
             "case:RequestedAmount": float(event.eventCase.requestedAmount),
             "case:ApplicationType": str(event.eventCase.applicationType),
             "hour_of_day": event.time.hour,
             "weekday": event.time.weekday(),
             "org:resource": str(event.resource),
-            "rework_count": event.eventCase.getActivityCount(activity_name)
+            "rework_count": event.eventCase.getActivityCount(event.activity)
         }])
         predicted_seconds = self.models_advanced[kind].predict(context_df)[0]
         predicted_seconds = max(0.0, float(predicted_seconds))
@@ -332,6 +371,11 @@ class ProcessTimeEngine:
             pred = max(0.0, float(pipeline.predict(context_df)[0]))
             return timedelta(seconds=int(pred))
         return timedelta(0)
+    
+    def getMedian(self, activity, resource):
+        if f"{activity}_{resource}" in self.models_median:
+            return self.models_median[f"{activity}_{resource}"]
+        return 0
 
 if __name__ == "__main__":
     processTimeEngine = ProcessTimeEngine()
